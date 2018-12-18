@@ -20,6 +20,12 @@ type VaultAuth struct {
 	} `json:"auth"`
 }
 
+// AppRoleCredentials holds the app role secret and role ids
+type AppRoleCredentials struct {
+	RoleID   string `json:"role_id"`
+	SecretID string `json:"secret_id"`
+}
+
 //SetTokenFromAppRole get the token from Vault and set it in the client
 func (c *VaultClient) SetTokenFromAppRole() error {
 	if c.Config.AppRoleCredentials.RoleID == "" {

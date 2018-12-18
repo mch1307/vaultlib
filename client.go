@@ -29,16 +29,10 @@ type Config struct {
 	Token              string
 }
 
-// AppRoleCredentials holds the app role secret and role ids
-type AppRoleCredentials struct {
-	RoleID   string `json:"role_id"`
-	SecretID string `json:"secret_id"`
-}
-
-// VaultConfig returns a configuration based on ENV vars and default value
+// NewConfig returns a configuration based on ENV vars and default value
 // Modify the returned Config
-func VaultConfig() *Config {
-	var cfg *Config
+func NewConfig() *Config {
+	var cfg Config
 	if v := os.Getenv("VAULT_ADDR"); v != "" {
 		cfg.Address = v
 	} else {
@@ -80,8 +74,10 @@ func VaultConfig() *Config {
 			//fmt.Errorf("Error parsing VAULT_SKIP_VERIFY")
 			cfg.InsecureSSL = true
 		}
+	} else {
+		cfg.InsecureSSL = true
 	}
-	return cfg
+	return &cfg
 }
 
 // SetAppRole sets the app role role_id and secret_id in config
@@ -94,7 +90,8 @@ func (c *Config) SetAppRole(cred AppRoleCredentials) error {
 func NewClient(c *Config) (*VaultClient, error) {
 	// If no config provided, use a new one based on default values and env vars
 	if c == nil {
-		c = VaultConfig()
+		c = NewConfig()
+
 	}
 	var cli VaultClient
 	cli.Config = c
