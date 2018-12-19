@@ -1,6 +1,7 @@
 package vaultlib
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -8,7 +9,6 @@ import (
 	"net/url"
 	"runtime"
 	"strconv"
-	"bytes"
 
 	"github.com/pkg/errors"
 )
@@ -72,6 +72,8 @@ func (r *request) execute(c *http.Client) (VaultResponse, error) {
 	return vaultRsp, nil
 
 }
+
+//VaultResponse holds the generic json response from Vault server
 type VaultResponse struct {
 	RequestID     string          `json:"request_id"`
 	LeaseID       string          `json:"lease_id"`
