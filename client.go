@@ -101,10 +101,10 @@ func NewClient(c *Config) (*VaultClient, error) {
 	cli.Config.MaxRetries = c.MaxRetries
 	cli.Config.Timeout = c.Timeout
 	cli.Config.Token = c.Token
-	//roleID := c.AppRoleCredentials.RoleID
-	cli.Config.AppRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
-	cli.Config.AppRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
-
+	if c.AppRoleCredentials != nil {
+		cli.Config.AppRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
+		cli.Config.AppRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
+	}
 	u, err := url.Parse(c.Address)
 	if err != nil {
 		return nil, err
