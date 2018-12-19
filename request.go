@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"runtime"
 	"strconv"
+	"bytes"
 
 	"github.com/pkg/errors"
 )
@@ -27,7 +28,7 @@ func (r *request) setJSONBody(val interface{}) error {
 	if err != nil {
 		return err
 	}
-	r.Body = buf
+	r.Req.Body = ioutil.NopCloser(bytes.NewReader(buf))
 	return nil
 
 }
@@ -71,7 +72,6 @@ func (r *request) execute(c *http.Client) (VaultResponse, error) {
 	return vaultRsp, nil
 
 }
-
 type VaultResponse struct {
 	RequestID     string          `json:"request_id"`
 	LeaseID       string          `json:"lease_id"`

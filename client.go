@@ -25,7 +25,7 @@ type Config struct {
 	Timeout            time.Duration
 	CAPath             string
 	InsecureSSL        bool
-	AppRoleCredentials AppRoleCredentials
+	AppRoleCredentials *AppRoleCredentials
 	Token              string
 }
 
@@ -81,7 +81,7 @@ func NewConfig() *Config {
 }
 
 // SetAppRole sets the app role role_id and secret_id in config
-func (c *Config) SetAppRole(cred AppRoleCredentials) error {
+func (c *Config) SetAppRole(cred *AppRoleCredentials) error {
 	c.AppRoleCredentials = cred
 	return nil
 }
@@ -95,6 +95,16 @@ func NewClient(c *Config) (*VaultClient, error) {
 	}
 	var cli VaultClient
 	cli.Config = c
+	cli.Config.Address = c.Address
+	cli.Config.CAPath = c.CAPath
+	cli.Config.InsecureSSL = c.InsecureSSL
+	cli.Config.MaxRetries = c.MaxRetries
+	cli.Config.Timeout = c.Timeout
+	cli.Config.Token = c.Token
+	//roleID := c.AppRoleCredentials.RoleID
+	cli.Config.AppRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
+	cli.Config.AppRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
+
 	u, err := url.Parse(c.Address)
 	if err != nil {
 		return nil, err

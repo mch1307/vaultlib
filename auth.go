@@ -2,12 +2,10 @@ package vaultlib
 
 import (
 	"encoding/json"
-
 	"github.com/pkg/errors"
 )
 
 type VaultAuth struct {
-	Auth struct {
 		ClientToken string   `json:"client_token"`
 		Accessor    string   `json:"accessor"`
 		Policies    []string `json:"policies"`
@@ -17,7 +15,6 @@ type VaultAuth struct {
 		LeaseDuration int    `json:"lease_duration"`
 		Renewable     bool   `json:"renewable"`
 		EntityID      string `json:"entity_id"`
-	} `json:"auth"`
 }
 
 // AppRoleCredentials holds the app role secret and role ids
@@ -46,11 +43,11 @@ func (c *VaultClient) SetTokenFromAppRole() error {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
 	var vaultAuth VaultAuth
-	jsonErr := json.Unmarshal(resp.Auth, &vaultAuth)
+	jsonErr := json.Unmarshal([]byte(resp.Auth), &vaultAuth)
 	if jsonErr != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
-	c.Token = vaultAuth.Auth.ClientToken
+	c.Token = vaultAuth.ClientToken
 
 	return nil
 }
