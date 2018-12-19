@@ -62,10 +62,10 @@ func TestConfig_SetAppRole(t *testing.T) {
 				Timeout:            tt.fields.Timeout,
 				CAPath:             tt.fields.CAPath,
 				InsecureSSL:        tt.fields.InsecureSSL,
-				AppRoleCredentials: tt.fields.AppRoleCredentials,
+				AppRoleCredentials: &tt.fields.AppRoleCredentials,
 				Token:              tt.fields.Token,
 			}
-			if err := c.SetAppRole(tt.args.cred); (err != nil) != tt.wantErr {
+			if err := c.SetAppRole(&tt.args.cred); (err != nil) != tt.wantErr {
 				t.Errorf("Config.SetAppRole() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -74,7 +74,8 @@ func TestConfig_SetAppRole(t *testing.T) {
 
 func TestNewClient(t *testing.T) {
 	// create client without token
-	vc, _ := NewClient(NewConfig())
+	defaultCfg := NewConfig()
+	vc, _ := NewClient(defaultCfg)
 	// add token to client
 	vc.Token = "abcd"
 	// create new config with a vault token
