@@ -18,6 +18,12 @@ type VaultClient struct {
 	Token      string
 }
 
+// AppRoleCredentials holds the app role secret and role ids
+type AppRoleCredentials struct {
+	RoleID   string `json:"role_id"`
+	SecretID string `json:"secret_id"`
+}
+
 // Config holds the vault client config
 type Config struct {
 	Address            string
@@ -33,6 +39,7 @@ type Config struct {
 // Modify the returned Config
 func NewConfig() *Config {
 	var cfg Config
+	appRoleCredentials := new(AppRoleCredentials)
 	if v := os.Getenv("VAULT_ADDR"); v != "" {
 		cfg.Address = v
 	} else {
@@ -48,17 +55,16 @@ func NewConfig() *Config {
 	}
 
 	if v := os.Getenv("VAULT_ROLEID"); v != "" {
-		cfg.AppRoleCredentials.RoleID = v
+		appRoleCredentials.RoleID = v
 	}
 
 	if v := os.Getenv("VAULT_SECRETID"); v != "" {
-		cfg.AppRoleCredentials.SecretID = v
+		appRoleCredentials.SecretID = v
 	}
 
 	if t := os.Getenv("VAULT_CLIENT_TIMEOUT"); t != "" {
 		to, err := strconv.Atoi(t)
 		if err != nil {
-			//fmt.Errorf("Could not parse VAULT_CLIENT_TIMEOUT")
 			cfg.Timeout = time.Duration(30) * time.Second
 		}
 		clientTimeout := time.Duration(to) * time.Second
@@ -71,12 +77,12 @@ func NewConfig() *Config {
 		var err error
 		cfg.InsecureSSL, err = strconv.ParseBool(v)
 		if err != nil {
-			//fmt.Errorf("Error parsing VAULT_SKIP_VERIFY")
 			cfg.InsecureSSL = true
 		}
 	} else {
 		cfg.InsecureSSL = true
 	}
+	cfg.AppRoleCredentials = appRoleCredentials
 	return &cfg
 }
 
@@ -101,10 +107,8 @@ func NewClient(c *Config) (*VaultClient, error) {
 	cli.Config.MaxRetries = c.MaxRetries
 	cli.Config.Timeout = c.Timeout
 	cli.Config.Token = c.Token
-	if c.AppRoleCredentials != nil {
-		cli.Config.AppRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
-		cli.Config.AppRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
-	}
+	cli.Config.AppRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
+	cli.Config.AppRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
 	u, err := url.Parse(c.Address)
 	if err != nil {
 		return nil, err

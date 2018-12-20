@@ -1,6 +1,7 @@
 package vaultlib
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -8,15 +9,18 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
+	appRoleCred := new(AppRoleCredentials)
+	appRoleCred.RoleID = "abcd"
 	tests := []struct {
 		name string
 		want Config
 	}{
-		{"DefaultConfig", Config{Address: "http://localhost:8200", InsecureSSL: true, Timeout: 30000000000}},
-		{"Custom", Config{Address: "https://localhost:8200", InsecureSSL: false, Timeout: 40000000000, CAPath: "/tmp", Token: "abcd"}},
+		{"DefaultConfig", Config{Address: "http://localhost:8200", InsecureSSL: true, Timeout: 30000000000, AppRoleCredentials: appRoleCred}},
+		{"Custom", Config{Address: "https://localhost:8200", InsecureSSL: false, Timeout: 40000000000, CAPath: "/tmp", Token: "abcd", AppRoleCredentials: appRoleCred}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			os.Setenv("VAULT_ROLEID", "abcd")
 			if tt.name == "Custom" {
 				os.Setenv("VAULT_ADDR", "https://localhost:8200")
 				os.Setenv("VAULT_SKIP_VERIFY", "0")
@@ -24,9 +28,12 @@ func TestNewConfig(t *testing.T) {
 				os.Setenv("VAULT_TOKEN", "abcd")
 				os.Setenv("VAULT_ROLE_ID", "abcd")
 				os.Setenv("VAULT_CLIENT_TIMEOUT", "40")
+
 			}
 			if got := NewConfig(); !reflect.DeepEqual(got, &tt.want) {
-				t.Errorf("NewConfig() = %v, want %v", got, &tt.want)
+				fmt.Println(tt.want.AppRoleCredentials.RoleID)
+				fmt.Println(got.AppRoleCredentials.RoleID)
+				t.Errorf("NewConfig() = %v, want %v %v", got, &tt.want, got.AppRoleCredentials.RoleID)
 			}
 		})
 	}
