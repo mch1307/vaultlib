@@ -73,18 +73,6 @@ func (r *request) execute(c *http.Client) (VaultResponse, error) {
 
 }
 
-//VaultResponse holds the generic json response from Vault server
-type VaultResponse struct {
-	RequestID     string          `json:"request_id"`
-	LeaseID       string          `json:"lease_id"`
-	Renewable     bool            `json:"renewable"`
-	LeaseDuration int             `json:"lease_duration"`
-	Data          json.RawMessage `json:"data"`
-	WrapInfo      json.RawMessage `json:"wrap_info"`
-	Warnings      json.RawMessage `json:"warnings"`
-	Auth          json.RawMessage `json:"auth"`
-}
-
 func errInfo() (info string) {
 	pc := make([]uintptr, 15)
 	n := runtime.Callers(2, pc)
