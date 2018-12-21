@@ -1,6 +1,7 @@
 package vaultlib
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -13,7 +14,7 @@ func TestVaultClient_getKVVersion(t *testing.T) {
 		conf := NewConfig()
 		cred := AppRoleCredentials{
 			RoleID:   "bb07197d-437f-9828-6512-94a5ec6c45a8",
-			SecretID: "2471e387-d590-88ec-a6a2-111a06befe27",
+			SecretID: "4d29046b-5b24-306b-e112-ec719fe5cd95",
 		}
 		_ = conf.SetAppRole(cred)
 		cli, _ := NewClient(conf)
@@ -24,7 +25,8 @@ func TestVaultClient_getKVVersion(t *testing.T) {
 		}
 		//cli.Token = "goodToken"
 
-		gotVersion, err := cli.getKVVersion("kv1")
+		gotVersion, name, err := cli.getKVInfo("kvv1/")
+		fmt.Println("a", name)
 		if err != nil {
 			t.Errorf("Err:  %v", err)
 		}
