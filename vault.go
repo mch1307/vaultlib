@@ -18,24 +18,27 @@ type VaultResponse struct {
 	Auth          json.RawMessage `json:"auth"`
 }
 
-// VaultSecretMount dfbnsfdbkjsdn
-type VaultSecretMount struct {
+//VaultMountResponse holds the Vault Mount list response (used to unmarshall the globa vault response)
+type VaultMountResponse struct {
 	Auth   json.RawMessage `json:"auth"`
-	Secret []struct {
-		Name     string `json:"??,string"`
-		Accessor string `json:"accessor"`
-		Config   struct {
-			DefaultLeaseTTL int    `json:"default_lease_ttl"`
-			ForceNoCache    bool   `json:"force_no_cache"`
-			MaxLeaseTTL     int    `json:"max_lease_ttl"`
-			PluginName      string `json:"plugin_name"`
-		} `json:"config"`
-		Description string                 `json:"description"`
-		Local       bool                   `json:"local"`
-		Options     map[string]interface{} `json:"options"`
-		SealWrap    bool                   `json:"seal_wrap"`
-		Type        string                 `json:"type"`
-	} `json:"secret"`
+	Secret json.RawMessage `json:"secret"`
+}
+
+// VaultSecretMounts hodls the vault secret engine def
+type VaultSecretMounts struct {
+	Name     string `json:"??,string"`
+	Accessor string `json:"accessor"`
+	Config   struct {
+		DefaultLeaseTTL int    `json:"default_lease_ttl"`
+		ForceNoCache    bool   `json:"force_no_cache"`
+		MaxLeaseTTL     int    `json:"max_lease_ttl"`
+		PluginName      string `json:"plugin_name"`
+	} `json:"config"`
+	Description string                 `json:"description"`
+	Local       bool                   `json:"local"`
+	Options     map[string]interface{} `json:"options"`
+	SealWrap    bool                   `json:"seal_wrap"`
+	Type        string                 `json:"type"`
 }
 
 func (c *VaultClient) getKVVersion(kvName string) (version string, err error) {
@@ -53,14 +56,19 @@ func (c *VaultClient) getKVVersion(kvName string) (version string, err error) {
 	if err != nil {
 		return "", errors.Wrap(errors.WithStack(err), errInfo())
 	}
-
-	var vaultSecretMount VaultSecretMount
-	jsonErr := json.Unmarshal([]byte(rsp.Auth), &vaultSecretMount)
+	var mountResponse VaultMountResponse
+	var vaultSecretMount = make(map[string]VaultSecretMounts)
+	jsonErr := json.Unmarshal([]byte(rsp.Data), &mountResponse)
 	if jsonErr != nil {
 		return "", errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
-	for _, v := range vaultSecretMount.Secret {
+	jsonErr = json.Unmarshal([]byte(mountResponse.Secret), &vaultSecretMount)
+	if jsonErr != nil {
+		return "", errors.Wrap(errors.WithStack(err), errInfo())
+	}
+
+	for _, v := range vaultSecretMount {
 		if v.Name == kvName {
 			if len(v.Options) > 0 {
 				switch v.Options["version"].(type) {
