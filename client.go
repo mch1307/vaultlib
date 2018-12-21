@@ -87,8 +87,8 @@ func NewConfig() *Config {
 }
 
 // SetAppRole sets the app role role_id and secret_id in config
-func (c *Config) SetAppRole(cred *AppRoleCredentials) error {
-	c.AppRoleCredentials = cred
+func (c *Config) SetAppRole(cred AppRoleCredentials) error {
+	c.AppRoleCredentials = &cred
 	return nil
 }
 
