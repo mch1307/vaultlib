@@ -39,7 +39,7 @@ func (c *VaultClient) SetTokenFromAppRole() error {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
 	var vaultData VaultSecretMount
-	jsonErr := json.Unmarshal([]byte(resp.Data), &vaultData)
+	jsonErr := json.Unmarshal([]byte(resp.Auth), &vaultData)
 	if jsonErr != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
