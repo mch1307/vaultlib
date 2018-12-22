@@ -67,7 +67,7 @@ func main() {
 
 	// Get the Vault secret data
 	kv := make(map[string]string)
-	kv, err = vaultCli.GetVaultSecret("kv_v1/path/my-secret")
+	kv, err = vaultCli.GetVaultSecret("my_vk/my_org/my-secret")
 	if err != nil {
 		fmt.Println(err)
 	}
