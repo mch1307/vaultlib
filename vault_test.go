@@ -16,10 +16,10 @@ func TestVaultClient_getKVVersion(t *testing.T) {
 			RoleID:   "bb07197d-437f-9828-6512-94a5ec6c45a8",
 			SecretID: "4d29046b-5b24-306b-e112-ec719fe5cd95",
 		}
-		_ = conf.SetAppRole(cred)
+		_ = conf.setAppRole(cred)
 		cli, _ := NewClient(conf)
 
-		err := cli.SetTokenFromAppRole()
+		err := cli.setTokenFromAppRole()
 		if err != nil {
 			t.Errorf("error with app role auth: %v", err)
 		}

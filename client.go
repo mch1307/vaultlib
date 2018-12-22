@@ -16,6 +16,7 @@ type VaultClient struct {
 	HTTPClient *http.Client
 	Config     *Config
 	Token      string
+	Status     string
 }
 
 // AppRoleCredentials holds the app role secret and role ids
@@ -86,8 +87,9 @@ func NewConfig() *Config {
 	return &cfg
 }
 
-// SetAppRole sets the app role role_id and secret_id in config
-func (c *Config) SetAppRole(cred AppRoleCredentials) error {
+// setAppRole sets the app role role_id and secret_id in config
+// only used in tests (temp)
+func (c *Config) setAppRole(cred AppRoleCredentials) error {
 	c.AppRoleCredentials = &cred
 	return nil
 }
@@ -100,6 +102,7 @@ func NewClient(c *Config) (*VaultClient, error) {
 
 	}
 	var cli VaultClient
+	cli.Status = "New"
 	cli.Config = c
 	cli.Config.Address = c.Address
 	cli.Config.CAPath = c.CAPath
@@ -116,6 +119,13 @@ func NewClient(c *Config) (*VaultClient, error) {
 	cli.Address = u
 	cli.HTTPClient = cleanhttp.DefaultPooledClient()
 	cli.Token = c.Token
+
+	err = cli.setTokenFromAppRole()
+	if err != nil {
+		cli.Status = "Authentication Error: " + err.Error()
+		return &cli, err
+	}
+	cli.Status = "Authenticated"
 
 	return &cli, nil
 }

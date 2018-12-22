@@ -7,22 +7,38 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"runtime"
-	"strconv"
 
+	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	"github.com/pkg/errors"
 )
 
 type request struct {
-	Method  string
-	URL     *url.URL
-	Path    string
-	Req     *http.Request
-	Headers http.Header
-	Token   string
-	Body    []byte
+	Req        *http.Request
+	HTTPClient *http.Client
+	Headers    http.Header
+	Token      string
 }
 
+// Returns a ready to execute request
+func newRequest(method, token string, url *url.URL, htCli *http.Client) (*request, error) {
+	var err error
+	req := new(request)
+	req.HTTPClient = cleanhttp.DefaultPooledClient()
+	req.Token = token
+
+	req.Req, err = http.NewRequest(method, url.String(), nil)
+	if err != nil {
+		return req, err
+	}
+	req.Req.Header.Set("Content-Type", "application/json")
+	if req.Token != "" {
+		req.Req.Header.Set("X-Vault-Token", req.Token)
+	}
+	return req, err
+
+}
+
+// Adds JSON formatted body to request
 func (r *request) setJSONBody(val interface{}) error {
 	buf, err := json.Marshal(val)
 	if err != nil {
@@ -33,23 +49,10 @@ func (r *request) setJSONBody(val interface{}) error {
 
 }
 
-func (r *request) prepareRequest() error {
-	var err error
-	r.Req, err = http.NewRequest(r.Method, r.URL.String(), nil)
-	if err != nil {
-		return err
-	}
-	r.Req.Header.Set("Content-Type", "application/json")
-	if r.Token != "" {
-		r.Req.Header.Set("X-Vault-Token", r.Token)
-	}
-	return nil
-}
-
-// execute executes the request using the provided client
-func (r *request) execute(c *http.Client) (VaultResponse, error) {
+// Executes the request
+func (r *request) execute() (VaultResponse, error) {
 	var vaultRsp VaultResponse
-	res, err := c.Do(r.Req)
+	res, err := r.HTTPClient.Do(r.Req)
 	if err != nil {
 		return vaultRsp, errors.Wrap(errors.WithStack(err), errInfo())
 	}
@@ -60,7 +63,7 @@ func (r *request) execute(c *http.Client) (VaultResponse, error) {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		httpErr := fmt.Sprintf("Vault http call %v returned %v. Body: %v", r.URL.String(), res.Status, string(body))
+		httpErr := fmt.Sprintf("Vault http call %v returned %v. Body: %v", r.Req.URL.String(), res.Status, string(body))
 		return vaultRsp, errors.New(httpErr)
 	}
 
@@ -71,12 +74,4 @@ func (r *request) execute(c *http.Client) (VaultResponse, error) {
 
 	return vaultRsp, nil
 
-}
-
-func errInfo() (info string) {
-	pc := make([]uintptr, 15)
-	n := runtime.Callers(2, pc)
-	frames := runtime.CallersFrames(pc[:n])
-	frame, _ := frames.Next()
-	return frame.Function + ":" + strconv.Itoa(frame.Line)
 }

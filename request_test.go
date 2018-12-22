@@ -2,6 +2,7 @@ package vaultlib
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/url"
 	"testing"
 )
@@ -11,9 +12,9 @@ func Test_request_setJSONBody(t *testing.T) {
 		var cred AppRoleCredentials
 		cred.RoleID = "aa"
 		cred.SecretID = "bb"
-		var req request
-		req.URL, _ = url.Parse("http://localhot:8200")
-		req.prepareRequest()
+		htCli := new(http.Client)
+		url, _ := url.Parse("http://localhot:8200")
+		req, _ := newRequest("GET", "", url, htCli)
 		err := req.setJSONBody(cred)
 
 		var vaultAuth AppRoleCredentials

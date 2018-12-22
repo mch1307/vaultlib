@@ -16,13 +16,13 @@ func TestNewConfig(t *testing.T) {
 		want Config
 	}{
 		{"DefaultConfig", Config{Address: "http://localhost:8200", InsecureSSL: true, Timeout: 30000000000, AppRoleCredentials: appRoleCred}},
-		{"Custom", Config{Address: "https://localhost:8200", InsecureSSL: false, Timeout: 40000000000, CAPath: "/tmp", Token: "abcd", AppRoleCredentials: appRoleCred}},
+		{"Custom", Config{Address: "http://localhost:8200", InsecureSSL: false, Timeout: 40000000000, CAPath: "/tmp", Token: "abcd", AppRoleCredentials: appRoleCred}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			os.Setenv("VAULT_ROLEID", "abcd")
 			if tt.name == "Custom" {
-				os.Setenv("VAULT_ADDR", "https://localhost:8200")
+				os.Setenv("VAULT_ADDR", "http://localhost:8200")
 				os.Setenv("VAULT_SKIP_VERIFY", "0")
 				os.Setenv("VAULT_CAPATH", "/tmp")
 				os.Setenv("VAULT_TOKEN", "abcd")
@@ -72,8 +72,8 @@ func TestConfig_SetAppRole(t *testing.T) {
 				AppRoleCredentials: &tt.fields.AppRoleCredentials,
 				Token:              tt.fields.Token,
 			}
-			if err := c.SetAppRole(tt.args.cred); (err != nil) != tt.wantErr {
-				t.Errorf("Config.SetAppRole() error = %v, wantErr %v", err, tt.wantErr)
+			if err := c.setAppRole(tt.args.cred); (err != nil) != tt.wantErr {
+				t.Errorf("Config.setAppRole() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

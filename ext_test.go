@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	vaultMount  VaultSecretMount
-	vaultMounts []VaultSecretMount
+	vaultMount  VaultSecretMounts
+	vaultMounts []VaultSecretMounts
 )
 
 func TestMain(m *testing.M) {
@@ -25,7 +25,7 @@ func InitVaultStub() {
 	http.HandleFunc("/v1/secret/data/test-test", vaultSecretV2Handler)
 	http.HandleFunc("/v1/kv1/test-test", vaultSecretV1Handler)
 
-	go http.ListenAndServe(":8500", nil)
+	go http.ListenAndServe(":8200", nil)
 }
 
 // func loginHandler(w http.ResponseWriter, r *http.Request) {
