@@ -99,7 +99,6 @@ func NewClient(c *Config) (*VaultClient, error) {
 	// If no config provided, use a new one based on default values and env vars
 	if c == nil {
 		c = NewConfig()
-
 	}
 	var cli VaultClient
 	cli.Status = "New"
@@ -120,12 +119,13 @@ func NewClient(c *Config) (*VaultClient, error) {
 	cli.HTTPClient = cleanhttp.DefaultPooledClient()
 	cli.Token = c.Token
 
-	err = cli.setTokenFromAppRole()
-	if err != nil {
-		cli.Status = "Authentication Error: " + err.Error()
-		return &cli, err
+	if cli.Token == "" {
+		err = cli.setTokenFromAppRole()
+		if err != nil {
+			cli.Status = "Authentication Error: " + err.Error()
+			return &cli, err
+		}
 	}
-	cli.Status = "Authenticated"
-
+	cli.Status = "Token ready"
 	return &cli, nil
 }
