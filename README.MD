@@ -1,13 +1,15 @@
 # vaultlib (work in progress)
 
-Lightweight Go library for Vault (http) secret reading.
+Lightweight, simple Go library for Vault secret reading (http API).
 
-Connect to Vault
+Connect to Vault through app role or token.
+
+Reads kv secret values
 
 ## Features
 
 * Connect to Vault through app role
-* Read Vault secret, `kv` type (v1 or v2 "versionned")
+* Read Vault secret, `kv` type (v1 or v2 "versioned")
 
 ## Config
 
@@ -32,7 +34,9 @@ If not set, fallback to default values.
 
 Can also be set programmatically through the `Config` object
 
-## Example
+## Getting Started
+
+> For a simple, working example, check the sample folder.
 
 ```golang
 package main
@@ -56,8 +60,8 @@ func main() {
 	vcConf.Address = "http://localhost:8200"
 
 	// set app role credentials (ie after reading from docker secret)
-	vcConf.AppRoleCredentials.RoleID = "8bff65bc-bbae-4bae-ee7e-b06effe0d421"
-	vcConf.AppRoleCredentials.SecretID = "d5a56e73-a70a-21e2-3b46-2e70d8271f1b"
+	// vcConf.AppRoleCredentials.RoleID = "myRoleID"
+	// vcConf.AppRoleCredentials.SecretID = "mySecretID"
 
 	// Create new client
 	vaultCli, err := vault.NewClient(vcConf)
@@ -67,7 +71,7 @@ func main() {
 
 	// Get the Vault secret data
 	kv := make(map[string]string)
-	kv, err = vaultCli.GetVaultSecret("my_vk/my_org/my-secret")
+	kv, err = vaultCli.GetVaultSecret("my_kv/my_org/my_secret")
 	if err != nil {
 		fmt.Println(err)
 	}

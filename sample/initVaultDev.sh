@@ -4,19 +4,18 @@ export VAULT_ADDR=http://localhost:8200
 export VAULT_TOKEN=my-dev-root-vault-token
 
 vault server -dev -dev-root-token-id ${VAULT_TOKEN} &
-
+unset VAULT_TOKEN
 # create KVs
 vault secrets enable -path=kv_v1/path/ kv
 vault secrets enable -path=kv_v2/path/ kv
 vault kv enable-versioning kv_v2/path/
 
 # create secrets
-vault kv put kv_v1/path/my-secret secret=value
-vault kv put kv_v2/path/my-secret secret=value
-vault kv put kv_v2/path/my-secret secret2=value2
+vault kv put kv_v1/path/my-secret my-v1-secret=my-v1-secret-value
+vault kv put kv_v2/path/my-secret my-first-secret=my-first-secret-value my-second-secret=my-second-secret-value
 
 # create policy
-vault policy write VaultDevAdmin vaultDevAdminPolicy.hcl
+vault policy write VaultDevAdmin VaultPolicy.hcl
 
 # create approle
 vault auth enable approle
