@@ -1,12 +1,36 @@
 # vaultlib (work in progress)
 
-Light Go library for simple Vault (http) reading
+Lightweight Go library for Vault (http) secret reading.
+
+Connect to Vault
 
 ## Features
 
- [X] Connect to Vault through app role
+* Connect to Vault through app role
+* Read Vault secret, `kv` type (v1 or v2 "versionned")
 
- [] Read secret(s)
+## Config
+
+Reads the following env variables:
+
+`VAULT_ADDR` : Vault server URL (including scheme and port)
+
+`VAULT_CAPATH` : CA path
+
+`VAULT_TOKEN` : Vault Token
+
+`VAULT_ROLEID` : Vault app role id
+
+`VAULT_SECRETID` : Vault app role secret id
+
+`VAULT_CLIENT_TIMEOUT` : Client timeout
+
+`VAULT_SKIP_VERIFY` : Do not check SSL
+
+
+If not set, fallback to default values.
+
+Can also be set programmatically through the `Config` object
 
 ## Example
 
@@ -14,6 +38,7 @@ Light Go library for simple Vault (http) reading
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -21,25 +46,33 @@ import (
 )
 
 func main() {
+	// Config can be set through ENV before invoking NewConfig
 	os.Setenv("VAULT_ADDR", "http://localhost:8200")
-	// Create a new config. Reads env variables, fallback to default value if needed
-	conf := vault.NewConfig()
 
-	conf.CAPath = "/etc/myapp/ssl"
+	// Create a new config. Reads env variables, fallback to default value if needed
+	vcConf := vault.NewConfig()
+
+	// Config can also be done programmtically
+	vcConf.Address = "http://localhost:8200"
+
+	// set app role credentials (ie after reading from docker secret)
+	vcConf.AppRoleCredentials.RoleID = "8bff65bc-bbae-4bae-ee7e-b06effe0d421"
+	vcConf.AppRoleCredentials.SecretID = "d5a56e73-a70a-21e2-3b46-2e70d8271f1b"
+
 	// Create new client
-	cli, err := vault.NewClient(conf)
+	vaultCli, err := vault.NewClient(vcConf)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// set app role credentials (ie from docker secret)
-	conf.AppRoleCredentials.RoleID = "acalcasdavfdvsdfv3d"
-	conf.AppRoleCredentials.SecretID = "sdavs3vafdv4afdsv"
-	
-	// Authenticate through app role
-	err = cli.SetTokenFromAppRole()
+
+	// Get the Vault secret data
+	kv := make(map[string]string)
+	kv, err = vaultCli.GetVaultSecret("kv_v1/path/my-secret")
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
-	
+	for k, v := range kv {
+		fmt.Printf("secret %v: %v\n", k, v)
+	}
 }
-`` 
+```
