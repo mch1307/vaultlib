@@ -2,6 +2,7 @@ package vaultlib
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -87,10 +88,10 @@ func TestNewClient(t *testing.T) {
 	// create new config with a vault token
 	os.Setenv("VAULT_TOKEN", "my-dev-root-vault-token")
 	cfg := NewConfig()
-	// create new config without vault token
 	os.Unsetenv("VAULT_TOKEN")
+	// create new config without vault token
 	wrongTokenConfig := NewConfig()
-	//wrongTokenConfig.Token = "bad-token"
+	wrongTokenConfig.Token = ""
 	wrongTokenConfig.AppRoleCredentials.SecretID = "bad-secret"
 
 	type args struct {
@@ -135,4 +136,34 @@ func ExampleNewClient(*Config) {
 		fmt.Println(err)
 	}
 	fmt.Println(myVaultClient.Address)
+}
+
+func Example() {
+	// Create a new config. Reads env variables, fallback to default value if needed
+	vcConf := NewConfig()
+
+	// Create new client
+	vaultCli, err := NewClient(vcConf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get the Vault secret kv_v1/path/my-secret
+	kv := make(map[string]string)
+	kv, err = vaultCli.GetVaultSecret("kv_v1/path/my-secret")
+	if err != nil {
+		fmt.Println(err)
+	}
+	for k, v := range kv {
+		fmt.Printf("Secret %v: %v\n", k, v)
+	}
+	// Get the Vault secret kv_v2/path/my-secret
+	kv2 := make(map[string]string)
+	kv2, err = vaultCli.GetVaultSecret("kv_v2/path/my-secret")
+	if err != nil {
+		fmt.Println(err)
+	}
+	for k, v := range kv2 {
+		fmt.Printf("Secret %v: %v\n", k, v)
+	}
 }
