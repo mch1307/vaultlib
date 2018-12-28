@@ -1,5 +1,10 @@
 # vaultlib (work in progress)
 
+[![Build Status](https://travis-ci.org/mch1307/vaultlib.svg?branch=master)](https://travis-ci.org/mch1307/vaultlib)
+
+[![Coverage Status](https://coveralls.io/repos/github/mch1307/vaultlib/badge.svg?branch=master)](https://coveralls.io/github/mch1307/vaultlib?branch=master)
+
+
 Lightweight, simple Go library for Vault secret reading (http API).
 
 Connect to Vault through app role or token.
