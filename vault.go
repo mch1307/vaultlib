@@ -51,7 +51,7 @@ func (c *VaultClient) getKVInfo(path string) (version, name string, err error) {
 
 	req, err := newRequest("GET", c.Token, c.Address, c.HTTPClient)
 	if err != nil {
-		return "", "", err
+		return "", "", errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
 	rsp, err := req.execute()

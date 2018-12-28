@@ -1,0 +1,16 @@
+# .travis.yml
+language: go
+go:
+    - 1.11.4
+install: true
+sudo: required
+go:
+  - tip
+services:
+  - docker
+before_install:
+  - go get github.com/mattn/goveralls
+script:
+  - goveralls -v -service=travis-ci
+after_success:
+  - test -n "$TRAVIS_TAG" && curl -sL https://git.io/goreleaser | bash 

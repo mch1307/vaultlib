@@ -1,7 +1,6 @@
 package vaultlib
 
 import (
-	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -11,29 +10,28 @@ import (
 func TestNewConfig(t *testing.T) {
 	appRoleCred := new(AppRoleCredentials)
 	appRoleCred.RoleID = "abcd"
+	appRoleCred.SecretID = "my-secret"
 	tests := []struct {
 		name string
 		want Config
 	}{
 		{"DefaultConfig", Config{Address: "http://localhost:8200", InsecureSSL: true, Timeout: 30000000000, AppRoleCredentials: appRoleCred}},
-		{"Custom", Config{Address: "http://localhost:8200", InsecureSSL: false, Timeout: 40000000000, CAPath: "/tmp", Token: "abcd", AppRoleCredentials: appRoleCred}},
+		{"Custom", Config{Address: "http://localhost:8200", InsecureSSL: false, Timeout: 40000000000, CAPath: "/tmp", Token: "my-dev-root-vault-token", AppRoleCredentials: appRoleCred}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("VAULT_ROLEID", "abcd")
+			os.Setenv("VAULT_ROLEID", appRoleCred.RoleID)
+			os.Setenv("VAULT_SECRETID", appRoleCred.SecretID)
 			if tt.name == "Custom" {
 				os.Setenv("VAULT_ADDR", "http://localhost:8200")
 				os.Setenv("VAULT_SKIP_VERIFY", "0")
 				os.Setenv("VAULT_CAPATH", "/tmp")
-				os.Setenv("VAULT_TOKEN", "abcd")
-				os.Setenv("VAULT_ROLE_ID", "abcd")
+				os.Setenv("VAULT_TOKEN", "my-dev-root-vault-token")
 				os.Setenv("VAULT_CLIENT_TIMEOUT", "40")
 
 			}
 			if got := NewConfig(); !reflect.DeepEqual(got, &tt.want) {
-				fmt.Println(tt.want.AppRoleCredentials.RoleID)
-				fmt.Println(got.AppRoleCredentials.RoleID)
-				t.Errorf("NewConfig() = %v, want %v %v", got, &tt.want, got.AppRoleCredentials.RoleID)
+				t.Errorf("NewConfig() = %v, want %v", got, &tt.want)
 			}
 		})
 	}
@@ -84,10 +82,15 @@ func TestNewClient(t *testing.T) {
 	defaultCfg := NewConfig()
 	vc, _ := NewClient(defaultCfg)
 	// add token to client
-	vc.Token = "abcd"
+	vc.Token = "my-dev-root-vault-token"
 	// create new config with a vault token
-	os.Setenv("VAULT_TOKEN", "abcd")
+	os.Setenv("VAULT_TOKEN", "my-dev-root-vault-token")
 	cfg := NewConfig()
+	// create new config without vault token
+	os.Unsetenv("VAULT_TOKEN")
+	wrongTokenConfig := NewConfig()
+	//wrongTokenConfig.Token = "bad-token"
+	wrongTokenConfig.AppRoleCredentials.SecretID = "bad-secret"
 
 	type args struct {
 		c *Config
@@ -100,6 +103,7 @@ func TestNewClient(t *testing.T) {
 	}{
 		{"testOK", args{cfg}, vc, false},
 		{"testFail", args{cfg}, vc, true},
+		{"testNilConfig", args{wrongTokenConfig}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
