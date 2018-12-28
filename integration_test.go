@@ -14,9 +14,9 @@ var vaultRoleID, vaultSecretID string
 
 func prepareVault() {
 	go startVault()
-	// wait vaul
-	time.Sleep(5 * time.Second)
-	cmd := exec.Command("vault", "read", "-field=role_id", "auth/approle/role/my-role/role-id")
+	// wait 10 seconds vault
+	time.Sleep(10 * time.Second)
+	cmd := exec.Command("./vault", "read", "-field=role_id", "auth/approle/role/my-role/role-id")
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "VAULT_TOKEN=my-dev-root-vault-token")
 	cmd.Env = append(cmd.Env, "VAULT_ADDR=http://localhost:8200")
@@ -27,7 +27,7 @@ func prepareVault() {
 	}
 	vaultRoleID = string(out)
 
-	cmd = exec.Command("vault", "write", "-field=secret_id", "-f", "auth/approle/role/my-role/secret-id")
+	cmd = exec.Command("./vault", "write", "-field=secret_id", "-f", "auth/approle/role/my-role/secret-id")
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "VAULT_TOKEN=my-dev-root-vault-token")
 	cmd.Env = append(cmd.Env, "VAULT_ADDR=http://localhost:8200")
@@ -50,7 +50,7 @@ func startVault() {
 
 }
 func TestMain(m *testing.M) {
-	fmt.Println("TestMain: starting Vault stub")
+	fmt.Println("TestMain: Preparing Vault server")
 	prepareVault()
 	ret := m.Run()
 	os.Exit(ret)
