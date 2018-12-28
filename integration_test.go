@@ -14,8 +14,8 @@ var vaultRoleID, vaultSecretID string
 
 func prepareVault() {
 	go startVault()
-	// wait 20 seconds vault
-	time.Sleep(20 * time.Second)
+	// wait 30 seconds vault
+	time.Sleep(30 * time.Second)
 	cmd := exec.Command("./vault", "read", "-field=role_id", "auth/approle/role/my-role/role-id")
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "VAULT_TOKEN=my-dev-root-vault-token")
