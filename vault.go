@@ -9,7 +9,7 @@ import (
 )
 
 //VaultResponse holds the generic json response from Vault server
-type VaultResponse struct {
+type vaultResponse struct {
 	RequestID     string          `json:"request_id"`
 	LeaseID       string          `json:"lease_id"`
 	Renewable     bool            `json:"renewable"`
@@ -20,14 +20,14 @@ type VaultResponse struct {
 	Auth          json.RawMessage `json:"auth"`
 }
 
-//VaultMountResponse holds the Vault Mount list response (used to unmarshall the globa vault response)
-type VaultMountResponse struct {
+//vaultMountResponse holds the Vault Mount list response (used to unmarshall the globa vault response)
+type vaultMountResponse struct {
 	Auth   json.RawMessage `json:"auth"`
 	Secret json.RawMessage `json:"secret"`
 }
 
-// VaultSecretMounts hodls the vault secret engine def
-type VaultSecretMounts struct {
+// vaultSecretMounts hodls the vault secret engine def
+type vaultSecretMounts struct {
 	Name     string `json:"??,string"`
 	Accessor string `json:"accessor"`
 	Config   struct {
@@ -44,8 +44,8 @@ type VaultSecretMounts struct {
 }
 
 func (c *VaultClient) getKVInfo(path string) (version, name string, err error) {
-	var mountResponse VaultMountResponse
-	var vaultSecretMount = make(map[string]VaultSecretMounts)
+	var mountResponse vaultMountResponse
+	var vaultSecretMount = make(map[string]vaultSecretMounts)
 
 	c.Address.Path = "/v1/sys/internal/ui/mounts"
 
@@ -92,8 +92,8 @@ func (c *VaultClient) getKVInfo(path string) (version, name string, err error) {
 
 }
 
-// VaultAuth holds the Vault Auth response from server
-type VaultAuth struct {
+// vaultAuth holds the Vault Auth response from server
+type vaultAuth struct {
 	ClientToken string   `json:"client_token"`
 	Accessor    string   `json:"accessor"`
 	Policies    []string `json:"policies"`
@@ -107,7 +107,7 @@ type VaultAuth struct {
 
 //setTokenFromAppRole get the token from Vault and set it in the client
 func (c *VaultClient) setTokenFromAppRole() error {
-	var vaultData VaultAuth
+	var vaultData vaultAuth
 	if c.Config.AppRoleCredentials.RoleID == "" {
 		return errors.New("No credentials provided")
 	}
@@ -139,8 +139,8 @@ func (c *VaultClient) setTokenFromAppRole() error {
 	return nil
 }
 
-// VaultSecretKV2 holds the Vault secret (kv v2)
-type VaultSecretKV2 struct {
+// vaultSecretKV2 holds the Vault secret (kv v2)
+type vaultSecretKV2 struct {
 	Data     map[string]string `json:"data"`
 	Metadata struct {
 		CreatedTime  time.Time `json:"created_time"`
@@ -152,7 +152,7 @@ type VaultSecretKV2 struct {
 
 // GetVaultSecret returns the Vault secret as map
 func (c *VaultClient) GetVaultSecret(path string) (kv map[string]string, err error) {
-	var v2Secret VaultSecretKV2
+	var v2Secret vaultSecretKV2
 	v1Secret := make(map[string]string)
 	secretList := make(map[string]string)
 

@@ -1,3 +1,9 @@
+/*
+Package vaultlib is a lightweight Go library for reading Vault KV secrets.
+Interacts with Vault server using HTTP API only.
+First create a new *Config object using NewConfig()
+Then create you Vault client using NewClient(*Config)
+*/
 package vaultlib
 
 import (
@@ -50,8 +56,8 @@ func (r *request) setJSONBody(val interface{}) error {
 }
 
 // Executes the request
-func (r *request) execute() (VaultResponse, error) {
-	var vaultRsp VaultResponse
+func (r *request) execute() (vaultResponse, error) {
+	var vaultRsp vaultResponse
 	res, err := r.HTTPClient.Do(r.Req)
 	if err != nil {
 		return vaultRsp, errors.Wrap(errors.WithStack(err), errInfo())
