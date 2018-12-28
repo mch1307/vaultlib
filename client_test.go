@@ -1,6 +1,7 @@
 package vaultlib
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -120,4 +121,18 @@ func TestNewClient(t *testing.T) {
 			}
 		})
 	}
+}
+
+func ExampleNewConfig() {
+	myConfig := NewConfig()
+	myConfig.Address = "http://localhost:8200"
+}
+
+func ExampleNewClient(*Config) {
+	myConfig := NewConfig()
+	myVaultClient, err := NewClient(myConfig)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(myVaultClient.Address)
 }
