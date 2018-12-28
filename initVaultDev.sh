@@ -9,12 +9,13 @@ unzip vault_${VAULT_VERSION}_linux_amd64.zip
 #nohup ./vault server -dev -dev-root-token-id ${VAULT_TOKEN}  > /dev/null 2>&1 &
 ./vault server -dev -dev-root-token-id ${VAULT_TOKEN}  > /dev/null 2>&1 &
 # create KVs
-./vault secrets enable -path=kv_v1/path/ kv > /dev/null 2>&1
-./vault secrets enable -path=kv_v2/path/ kv > /dev/null 2>&1
-./vault kv enable-versioning kv_v2/path/ > /dev/null 2>&1
+./vault secrets enable -path=kv_v1/path/ kv > /dev/null 
+#2>&1
+./vault secrets enable -path=kv_v2/path/ kv > /dev/null 
+./vault kv enable-versioning kv_v2/path/ > /dev/null
 
 # create secrets
-./vault kv put kv_v1/path/my-secret my-v1-secret=my-v1-secret-value > /dev/null 2>&1
+./vault kv put kv_v1/path/my-secret my-v1-secret=my-v1-secret-value > /dev/null
 ./vault kv put kv_v2/path/my-secret my-first-secret=my-first-secret-value my-second-secret=my-second-secret-value > /dev/null 2>&1
 
 # create policy
