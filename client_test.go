@@ -129,7 +129,7 @@ func ExampleNewConfig() {
 	myConfig.Address = "http://localhost:8200"
 }
 
-func ExampleNewClient(*Config) {
+func ExampleNewClient() {
 	myConfig := NewConfig()
 	myVaultClient, err := NewClient(myConfig)
 	if err != nil {
@@ -149,8 +149,7 @@ func Example() {
 	}
 
 	// Get the Vault secret kv_v1/path/my-secret
-	kv := make(map[string]string)
-	kv, err = vaultCli.GetVaultSecret("kv_v1/path/my-secret")
+	kv, err := vaultCli.GetVaultSecret("kv_v1/path/my-secret")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -158,8 +157,7 @@ func Example() {
 		fmt.Printf("Secret %v: %v\n", k, v)
 	}
 	// Get the Vault secret kv_v2/path/my-secret
-	kv2 := make(map[string]string)
-	kv2, err = vaultCli.GetVaultSecret("kv_v2/path/my-secret")
+	kv2, err := vaultCli.GetVaultSecret("kv_v2/path/my-secret")
 	if err != nil {
 		fmt.Println(err)
 	}

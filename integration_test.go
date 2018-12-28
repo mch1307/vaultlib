@@ -46,7 +46,7 @@ func startVault() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	err = cmd.Wait()
+	_ = cmd.Wait()
 
 }
 func TestMain(m *testing.M) {
@@ -57,7 +57,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestVaultClient_GetVaultSecret(t *testing.T) {
-
+	_ = os.Unsetenv("VAULT_TOKEN")
 	conf := NewConfig()
 	conf.AppRoleCredentials.RoleID = vaultRoleID
 	conf.AppRoleCredentials.SecretID = vaultSecretID
