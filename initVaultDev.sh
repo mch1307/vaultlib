@@ -3,8 +3,9 @@ export VAULT_ADDR=http://localhost:8200
 export VAULT_TOKEN=my-dev-root-vault-token
 export VAULT_VERSION=1.0.1
 
-curl https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
-
+curl -kO https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
+unzip vault_${VAULT_VERSION}_linux_amd64.zip
+export PATH=$PATH:.
 
 #nohup ./vault server -dev -dev-root-token-id ${VAULT_TOKEN}  > /dev/null 2>&1 &
 vault server -dev -dev-root-token-id ${VAULT_TOKEN}  > /dev/null 2>&1 &
