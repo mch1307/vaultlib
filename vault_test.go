@@ -108,6 +108,8 @@ func TestVaultClient_GetVaultSecret(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get vault cli %v", err)
 	}
+	conf.Address = "https://localhost:8200"
+	badCli, _ := NewClient(conf)
 
 	tests := []struct {
 		name    string
@@ -119,6 +121,7 @@ func TestVaultClient_GetVaultSecret(t *testing.T) {
 		{"kvv1", vc, "kv_v1/path/my-secret", map[string]string{"my-v1-secret": "my-v1-secret-value"}, false},
 		{"kvv2", vc, "kv_v2/path/my-secret", map[string]string{"my-first-secret": "my-first-secret-value",
 			"my-second-secret": "my-second-secret-value"}, false},
+		{"invalidURL", badCli, "kv_v1/path/my-secret", map[string]string{}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
