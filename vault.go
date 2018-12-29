@@ -148,7 +148,9 @@ type vaultSecretKV2 struct {
 	} `json:"metadata"`
 }
 
-// GetVaultSecret returns the Vault secret as map
+// GetVaultSecret returns the Vault secret key/value list as a map[string]string
+//
+// Loop through the map to get keys and values
 func (c *VaultClient) GetVaultSecret(path string) (kv map[string]string, err error) {
 	var v2Secret vaultSecretKV2
 	v1Secret := make(map[string]string)
