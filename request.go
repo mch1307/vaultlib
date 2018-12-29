@@ -20,7 +20,7 @@ type request struct {
 }
 
 // Returns a ready to execute request
-func newRequest(method, token string, url *url.URL, htCli *http.Client) (*request, error) {
+func newRequest(method, token string, url *url.URL) (*request, error) {
 	var err error
 	req := new(request)
 	req.HTTPClient = cleanhttp.DefaultPooledClient()
