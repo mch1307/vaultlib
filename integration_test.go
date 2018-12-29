@@ -1,17 +1,25 @@
 package vaultlib
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"testing"
-	"time"
 )
 
 var vaultRoleID, vaultSecretID string
 
+var vaultVersion string
+
+func init() {
+	flag.StringVar(&vaultVersion, "vaultVersion", "1.0.1", "provide vault version to be tested against")
+	flag.Parse()
+}
 func TestMain(m *testing.M) {
+
+	fmt.Println("Testing with Vault version", vaultVersion)
 	fmt.Println("TestMain: Preparing Vault server")
 	prepareVault()
 	ret := m.Run()
@@ -19,9 +27,10 @@ func TestMain(m *testing.M) {
 }
 
 func prepareVault() {
-	go startVault()
-	// wait 20 seconds vault
-	time.Sleep(20 * time.Second)
+	err := startVault(vaultVersion)
+	if err != nil {
+		log.Fatalf("Error in initVaultDev.sh %v", err)
+	}
 	cmd := exec.Command("./vault", "read", "-field=role_id", "auth/approle/role/my-role/role-id")
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "VAULT_TOKEN=my-dev-root-vault-token")
@@ -46,12 +55,16 @@ func prepareVault() {
 
 }
 
-func startVault() {
-	cmd := exec.Command("./initVaultDev.sh")
+func startVault(version string) error {
+	cmd := exec.Command("./initVaultDev.sh", version)
 	err := cmd.Start()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-	_ = cmd.Wait()
+	err = cmd.Wait()
+	if err != nil {
+		return err
+	}
+	return nil
 
 }
