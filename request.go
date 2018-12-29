@@ -23,13 +23,15 @@ type request struct {
 func newRequest(method, token string, url *url.URL) (*request, error) {
 	var err error
 	req := new(request)
-	req.HTTPClient = cleanhttp.DefaultPooledClient()
-	req.Token = token
 
 	req.Req, err = http.NewRequest(method, url.String(), nil)
 	if err != nil {
 		return req, err
 	}
+
+	req.HTTPClient = cleanhttp.DefaultPooledClient()
+	req.Token = token
+
 	req.Req.Header.Set("Content-Type", "application/json")
 	if req.Token != "" {
 		req.Req.Header.Set("X-Vault-Token", req.Token)
