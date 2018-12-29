@@ -49,7 +49,7 @@ func (c *VaultClient) getKVInfo(path string) (version, name string, err error) {
 
 	c.Address.Path = "/v1/sys/internal/ui/mounts"
 
-	req, err := newRequest("GET", c.Token, c.Address, c.HTTPClient)
+	req, err := newRequest("GET", c.Token, c.Address)
 	if err != nil {
 		return "", "", errors.Wrap(errors.WithStack(err), errInfo())
 	}
@@ -114,7 +114,7 @@ func (c *VaultClient) setTokenFromAppRole() error {
 
 	c.Address.Path = "/v1/auth/approle/login"
 
-	req, err := newRequest("POST", c.Token, c.Address, c.HTTPClient)
+	req, err := newRequest("POST", c.Token, c.Address)
 	if err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
@@ -167,7 +167,7 @@ func (c *VaultClient) GetVaultSecret(path string) (kv map[string]string, err err
 		c.Address.Path = "/v1/" + path
 	}
 
-	req, err := newRequest("GET", c.Token, c.Address, c.HTTPClient)
+	req, err := newRequest("GET", c.Token, c.Address)
 	if err != nil {
 		return secretList, errors.Wrap(errors.WithStack(err), errInfo())
 	}
