@@ -1,7 +1,7 @@
 # vaultlib
 
 [![Build Status](https://travis-ci.org/mch1307/vaultlib.svg?branch=master)](https://travis-ci.org/mch1307/vaultlib)
-[![Coverage Status](https://coveralls.io/repos/github/mch1307/vaultlib/badge.svg?branch=master)](https://coveralls.io/github/mch1307/vaultlib?branch=master)[![GoDoc](https://godoc.org/github.com/mch1307/vaultlib?status.svg)](https://godoc.org/github.com/mch1307/vaultlib)[![Go Report Card](https://goreportcard.com/badge/github.com/mch1307/vaultlib)](https://goreportcard.com/report/github.com/mch1307/vaultlib)
+[![Coverage Status](https://coveralls.io/repos/github/mch1307/vaultlib/badge.svg?branch=master)](https://coveralls.io/github/mch1307/vaultlib?branch=master) [![GoDoc](https://godoc.org/github.com/mch1307/vaultlib?status.svg)](https://godoc.org/github.com/mch1307/vaultlib) [![Go Report Card](https://goreportcard.com/badge/github.com/mch1307/vaultlib)](https://goreportcard.com/report/github.com/mch1307/vaultlib)
 
 
 Lightweight, simple Go library for Vault secret reading (http API).
@@ -17,26 +17,21 @@ Reads kv secret values
 
 ## Config
 
-Reads the following env variables:
+Configuration can be done through env variables or programmatically through the `Config` object
+The following env variables are supported:
 
-`VAULT_ADDR` : Vault server URL (including scheme and port)
+```bash
+VAULT_ADDR				Vault server URL (default http://localhost:8200)
+VAULT_CAPATH			CA path
+VAULT_TOKEN				Vault Token
+VAULT_ROLEID			Vault app role id
+VAULT_SECRETID			Vault app role secret id
+VAULT_CLIENT_TIMEOUT	Client timeout
+VAULT_SKIP_VERIFY		Do not check SSL
+```
 
-`VAULT_CAPATH` : CA path
+If not set, `vaultlib` will fallback to default values.
 
-`VAULT_TOKEN` : Vault Token
-
-`VAULT_ROLEID` : Vault app role id
-
-`VAULT_SECRETID` : Vault app role secret id
-
-`VAULT_CLIENT_TIMEOUT` : Client timeout
-
-`VAULT_SKIP_VERIFY` : Do not check SSL
-
-
-If not set, fallback to default values.
-
-Can also be set programmatically through the `Config` object
 
 ## Getting Started
 
