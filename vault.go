@@ -76,8 +76,6 @@ func (c *VaultClient) getKVInfo(path string) (version, name string, err error) {
 				switch v.Options["version"].(type) {
 				case string:
 					version = v.Options["version"].(string)
-				default:
-					version = "1"
 				}
 			} else {
 				//kv v1
