@@ -103,6 +103,39 @@ type vaultAuth struct {
 	EntityID      string `json:"entity_id"`
 }
 
+func (c *VaultClient) renewToken() {
+	var vaultData vaultAuth
+	c.Address.Path = "v1/auth/token/renew-self"
+
+	req, err := newRequest("POST", c.Token, c.Address)
+	if err != nil {
+		c.Status = "Error renewing token " + err.Error()
+		return
+	}
+	// err = req.setJSONBody(fmt.Sprintf("{\"increment\":%v}", c.Lease))
+	// if err != nil {
+	// 	c.Status = errors.Wrap(errors.WithStack(err), errInfo()).Error()
+	// 	return
+	// }
+	resp, err := req.execute()
+	if err != nil {
+		c.Status = errors.Wrap(errors.WithStack(err), errInfo()).Error()
+		return
+	}
+
+	jsonErr := json.Unmarshal([]byte(resp.Auth), &vaultData)
+	if jsonErr != nil {
+		c.Status = errors.Wrap(errors.WithStack(err), errInfo()).Error()
+		return
+	}
+	if vaultData.Renewable {
+		c.Lease = vaultData.LeaseDuration
+		_ = time.AfterFunc(time.Duration(c.Lease-3)*time.Second, c.renewToken)
+	}
+	c.Token = vaultData.ClientToken
+
+}
+
 //setTokenFromAppRole get the token from Vault and set it in the client
 func (c *VaultClient) setTokenFromAppRole() error {
 	var vaultData vaultAuth
@@ -116,7 +149,6 @@ func (c *VaultClient) setTokenFromAppRole() error {
 	if err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
-
 	err = req.setJSONBody(c.Config.AppRoleCredentials)
 	if err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
@@ -131,7 +163,10 @@ func (c *VaultClient) setTokenFromAppRole() error {
 	if jsonErr != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
-
+	if vaultData.Renewable {
+		c.Lease = vaultData.LeaseDuration
+		_ = time.AfterFunc(time.Duration(c.Lease-3)*time.Second, c.renewToken)
+	}
 	c.Token = vaultData.ClientToken
 
 	return nil

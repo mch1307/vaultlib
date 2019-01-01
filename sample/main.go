@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	vault "github.com/mch1307/vaultlib"
 )
@@ -16,7 +17,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	fmt.Printf("AppRole RoleID: %v\n", vaultCli.Config.AppRoleCredentials.RoleID)
+	fmt.Printf("AppRole SecretID: %v\n", vaultCli.Config.AppRoleCredentials.SecretID)
+	fmt.Printf("AppRole token: %v\n", vaultCli.Token)
+	fmt.Printf("Client status: %v\n", vaultCli.Status)
 	// Get the Vault secret kv_v1/path/my-secret
 	kv, err := vaultCli.GetVaultSecret("kv_v1/path/my-secret")
 	if err != nil {
@@ -25,6 +29,8 @@ func main() {
 	for k, v := range kv {
 		fmt.Printf("Secret %v: %v\n", k, v)
 	}
+	time.Sleep(30 * time.Second)
+	fmt.Printf("Client status: %v\n", vaultCli.Status)
 	// Get the Vault secret kv_v2/path/my-secret
 	kv2, err := vaultCli.GetVaultSecret("kv_v2/path/my-secret")
 	if err != nil {
