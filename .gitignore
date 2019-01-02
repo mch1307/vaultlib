@@ -1,0 +1,6 @@
+vault
+vendor/*
+.idea
+.vscode
+*.dsc
+*.zip

@@ -56,7 +56,7 @@ func prepareVault() {
 }
 
 func startVault(version string) error {
-	cmd := exec.Command("./initVaultDev.sh", version)
+	cmd := exec.Command("bash", "./test-files/initVaultDev.sh", version)
 	err := cmd.Start()
 	if err != nil {
 		return err
