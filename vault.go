@@ -105,36 +105,40 @@ type vaultAuth struct {
 
 func (c *VaultClient) renewToken() {
 	var vaultData vaultAuth
-	url := c.Address
-	url.Path = "v1/auth/token/renew-self"
+	jsonToken := make(map[string]string)
 
-	req, err := newRequest("POST", c.Token, url)
-	if err != nil {
-		c.Status = "Error renewing token " + err.Error()
-		return
-	}
-	// err = req.setJSONBody(fmt.Sprintf("{\"increment\":%v}", c.Lease))
-	// if err != nil {
-	// 	c.Status = errors.Wrap(errors.WithStack(err), errInfo()).Error()
-	// 	return
-	// }
-	resp, err := req.execute()
-	if err != nil {
-		c.Status = errors.Wrap(errors.WithStack(err), errInfo()).Error()
-		return
-	}
+	for {
+		duration := c.Lease - 1
+		time.Sleep(time.Second * time.Duration(duration))
 
-	jsonErr := json.Unmarshal([]byte(resp.Auth), &vaultData)
-	if jsonErr != nil {
-		c.Status = errors.Wrap(errors.WithStack(err), errInfo()).Error()
-		return
-	}
-	if vaultData.Renewable {
+		url := c.Address
+		url.Path = "v1/auth/token/renew"
+		jsonToken["token"] = c.Token
+
+		req, err := newRequest("POST", c.Token, url)
+		if err != nil {
+			c.Status = "Error renewing token " + err.Error()
+			continue
+		}
+		err = req.setJSONBody(jsonToken)
+		if err != nil {
+			c.Status = "Error renewing token " + err.Error()
+			continue
+		}
+		resp, err := req.execute()
+		if err != nil {
+			c.Status = "Error renewing token " + err.Error()
+			continue
+		}
+
+		jsonErr := json.Unmarshal([]byte(resp.Auth), &vaultData)
+		if jsonErr != nil {
+			c.Status = "Error renewing token " + err.Error()
+			continue
+		}
 		c.Lease = vaultData.LeaseDuration
-		_ = time.AfterFunc(time.Duration(c.Lease-3)*time.Second, c.renewToken)
+		c.Status = "Token renewed"
 	}
-	c.Token = vaultData.ClientToken
-
 }
 
 //setTokenFromAppRole get the token from Vault and set it in the client
@@ -166,8 +170,7 @@ func (c *VaultClient) setTokenFromAppRole() error {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
 	if vaultData.Renewable {
-		c.Lease = vaultData.LeaseDuration
-		_ = time.AfterFunc(time.Duration(c.Lease-3)*time.Second, c.renewToken)
+		go c.renewToken()
 	}
 	c.Token = vaultData.ClientToken
 
