@@ -46,10 +46,10 @@ type vaultSecretMounts struct {
 func (c *VaultClient) getKVInfo(path string) (version, name string, err error) {
 	var mountResponse vaultMountResponse
 	var vaultSecretMount = make(map[string]vaultSecretMounts)
+	url := c.Address
+	url.Path = "/v1/sys/internal/ui/mounts"
 
-	c.Address.Path = "/v1/sys/internal/ui/mounts"
-
-	req, err := newRequest("GET", c.Token, c.Address)
+	req, err := newRequest("GET", c.Token, url)
 	if err != nil {
 		return "", "", errors.Wrap(errors.WithStack(err), errInfo())
 	}
@@ -103,6 +103,44 @@ type vaultAuth struct {
 	EntityID      string `json:"entity_id"`
 }
 
+func (c *VaultClient) renewToken() {
+	var vaultData vaultAuth
+	jsonToken := make(map[string]string)
+
+	for {
+		duration := c.Lease - 1
+		time.Sleep(time.Second * time.Duration(duration))
+
+		url := c.Address
+		url.Path = "v1/auth/token/renew"
+		jsonToken["token"] = c.Token
+
+		req, err := newRequest("POST", c.Token, url)
+		if err != nil {
+			c.Status = "Error renewing token " + err.Error()
+			continue
+		}
+		err = req.setJSONBody(jsonToken)
+		if err != nil {
+			c.Status = "Error renewing token " + err.Error()
+			continue
+		}
+		resp, err := req.execute()
+		if err != nil {
+			c.Status = "Error renewing token " + err.Error()
+			continue
+		}
+
+		jsonErr := json.Unmarshal([]byte(resp.Auth), &vaultData)
+		if jsonErr != nil {
+			c.Status = "Error renewing token " + err.Error()
+			continue
+		}
+		c.Lease = vaultData.LeaseDuration
+		c.Status = "Token renewed"
+	}
+}
+
 //setTokenFromAppRole get the token from Vault and set it in the client
 func (c *VaultClient) setTokenFromAppRole() error {
 	var vaultData vaultAuth
@@ -110,13 +148,13 @@ func (c *VaultClient) setTokenFromAppRole() error {
 		return errors.New("No credentials provided")
 	}
 
-	c.Address.Path = "/v1/auth/approle/login"
+	url := c.Address
+	url.Path = "/v1/auth/approle/login"
 
-	req, err := newRequest("POST", c.Token, c.Address)
+	req, err := newRequest("POST", c.Token, url)
 	if err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
-
 	err = req.setJSONBody(c.Config.AppRoleCredentials)
 	if err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
@@ -131,7 +169,9 @@ func (c *VaultClient) setTokenFromAppRole() error {
 	if jsonErr != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
-
+	if vaultData.Renewable {
+		go c.renewToken()
+	}
 	c.Token = vaultData.ClientToken
 
 	return nil
@@ -160,14 +200,15 @@ func (c *VaultClient) GetVaultSecret(path string) (kv map[string]string, err err
 	if err != nil {
 		return secretList, errors.Wrap(errors.WithStack(err), errInfo())
 	}
+	url := c.Address
 
 	if kvVersion == "2" {
-		c.Address.Path = "/v1/" + kvName + "data/" + strings.TrimPrefix(path, kvName)
+		url.Path = "/v1/" + kvName + "data/" + strings.TrimPrefix(path, kvName)
 	} else {
-		c.Address.Path = "/v1/" + path
+		url.Path = "/v1/" + path
 	}
 
-	req, err := newRequest("GET", c.Token, c.Address)
+	req, err := newRequest("GET", c.Token, url)
 	if err != nil {
 		return secretList, errors.Wrap(errors.WithStack(err), errInfo())
 	}

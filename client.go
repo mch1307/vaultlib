@@ -20,6 +20,7 @@ type VaultClient struct {
 	HTTPClient *http.Client
 	Config     *Config
 	Token      string
+	Lease      int
 	Status     string
 }
 
