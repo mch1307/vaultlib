@@ -24,7 +24,7 @@ sleep 5
 ./vault kv put kv_v2/path/my-secret my-first-secret=my-first-secret-value my-second-secret=my-second-secret-value >> /tmp/vaultdev.log
 
 # create policy
-./vault policy write VaultDevAdmin ./VaultPolicy.hcl >> /tmp/vaultdev.log
+./vault policy write VaultDevAdmin test-files/VaultPolicy.hcl >> /tmp/vaultdev.log
 
 # create approle
 ./vault auth enable approle >> /tmp/vaultdev.log
