@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestVaultClient_getKVInfo(t *testing.T) {
@@ -123,6 +124,8 @@ func TestVaultClient_GetVaultSecret(t *testing.T) {
 			"my-second-secret": "my-second-secret-value"}, false},
 		{"invalidURL", badCli, "kv_v1/path/my-secret", map[string]string{}, true},
 	}
+	//wait so that token renewal takes place
+	time.Sleep(12 * time.Second)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := tt.cli
