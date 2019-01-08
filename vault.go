@@ -275,3 +275,36 @@ func (c *Client) GetSecret(path string) (secret Secret, err error) {
 	}
 	return secret, nil
 }
+
+// RawRequest create and execute http request against Vault HTTP API for client.
+// Use the client's token for authentication.
+//
+// Specify http method, Vault path (ie /v1/ ) and optional json payload.
+// Return the Vault JSON response .
+func (c *Client) RawRequest(method, path string, payload json.RawMessage) (result json.RawMessage, err error) {
+
+	if len(method) == 0 || len(path) == 0 {
+		return result, errors.New("Both method and path must be specified")
+	}
+
+	url := c.Address
+	url.Path = path
+
+	req, err := newRequest(method, c.Token, url)
+	if err != nil {
+		return result, errors.Wrap(errors.WithStack(err), errInfo())
+	}
+
+	if payload != nil {
+		if err = req.setJSONBody(payload); err != nil {
+			return result, errors.Wrap(errors.WithStack(err), errInfo())
+		}
+	}
+
+	rsp, err := req.executeRaw()
+	if err != nil {
+		return result, errors.Wrap(errors.WithStack(err), errInfo())
+	}
+
+	return rsp, nil
+}

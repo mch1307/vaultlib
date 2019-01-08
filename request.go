@@ -51,29 +51,40 @@ func (r *request) setJSONBody(val interface{}) error {
 
 }
 
-// Executes the request
+// Executes the request, parse the result to vaultResponse
 func (r *request) execute() (vaultResponse, error) {
 	var vaultRsp vaultResponse
-	res, err := r.HTTPClient.Do(r.Req)
+	res, err := r.executeRaw()
 	if err != nil {
 		return vaultRsp, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
-	body, readErr := ioutil.ReadAll(res.Body)
-	if readErr != nil {
-		return vaultRsp, errors.Wrap(errors.WithStack(err), errInfo())
-	}
-
-	if res.StatusCode != http.StatusOK {
-		httpErr := fmt.Sprintf("Vault http call %v returned %v. Body: %v", r.Req.URL.String(), res.Status, string(body))
-		return vaultRsp, errors.New(httpErr)
-	}
-
-	jsonErr := json.Unmarshal(body, &vaultRsp)
+	jsonErr := json.Unmarshal(res, &vaultRsp)
 	if jsonErr != nil {
 		return vaultRsp, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
 	return vaultRsp, nil
+
+}
+
+// Executes the raw request, does not parse Vault response
+func (r *request) executeRaw() ([]byte, error) {
+	res, err := r.HTTPClient.Do(r.Req)
+	if err != nil {
+		return nil, errors.Wrap(errors.WithStack(err), errInfo())
+	}
+
+	body, readErr := ioutil.ReadAll(res.Body)
+	if readErr != nil {
+		return body, errors.Wrap(errors.WithStack(err), errInfo())
+	}
+
+	if res.StatusCode != http.StatusOK {
+		httpErr := fmt.Sprintf("Vault http call %v returned %v. Body: %v", r.Req.URL.String(), res.Status, string(body))
+		return body, errors.New(httpErr)
+	}
+
+	return body, nil
 
 }
