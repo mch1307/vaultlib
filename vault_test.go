@@ -52,14 +52,14 @@ func TestVaultClient_getKVInfo(t *testing.T) {
 			c, _ := NewClient(tt.fields.Config)
 			gotVersion, gotName, err := c.getKVInfo(tt.args.path)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("VaultClient.getKVInfo() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Client.getKVInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if gotVersion != tt.wantVersion {
-				t.Errorf("VaultClient.getKVInfo() gotVersion = %v, want %v", gotVersion, tt.wantVersion)
+				t.Errorf("Client.getKVInfo() gotVersion = %v, want %v", gotVersion, tt.wantVersion)
 			}
 			if gotName != tt.wantName {
-				t.Errorf("VaultClient.getKVInfo() gotName = %v, want %v", gotName, tt.wantName)
+				t.Errorf("Client.getKVInfo() gotName = %v, want %v", gotName, tt.wantName)
 			}
 		})
 	}
@@ -87,7 +87,7 @@ func TestVaultClient_setTokenFromAppRole(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &VaultClient{
+			c := &Client{
 				Address:    tt.fields.Address,
 				HTTPClient: tt.fields.HTTPClient,
 				Config:     tt.fields.Config,
@@ -95,13 +95,13 @@ func TestVaultClient_setTokenFromAppRole(t *testing.T) {
 				Status:     tt.fields.Status,
 			}
 			if err := c.setTokenFromAppRole(); (err != nil) != tt.wantErr {
-				t.Errorf("VaultClient.setTokenFromAppRole() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Client.setTokenFromAppRole() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestVaultClient_GetVaultSecret(t *testing.T) {
+func TestVaultClient_GetSecret(t *testing.T) {
 	_ = os.Unsetenv("VAULT_TOKEN")
 	conf := NewConfig()
 	conf.AppRoleCredentials.RoleID = vaultRoleID
@@ -115,7 +115,7 @@ func TestVaultClient_GetVaultSecret(t *testing.T) {
 	expectedJSON := []byte(`{"json-secret":{"first-secret":"first-value","second-secret":"second-value"}}`)
 	tests := []struct {
 		name     string
-		cli      *VaultClient
+		cli      *Client
 		path     string
 		wantKv   map[string]string
 		wantJSON json.RawMessage
@@ -133,13 +133,13 @@ func TestVaultClient_GetVaultSecret(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := tt.cli
-			res, err := c.GetVaultSecret(tt.path)
+			res, err := c.GetSecret(tt.path)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("VaultClient.GetVaultSecret() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Client.GetSecret() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(res.KV, tt.wantKv) || !reflect.DeepEqual(res.JSONSecret, tt.wantJSON) {
-				t.Errorf("VaultClient.GetVaultSecret() = %v, want %v", res.KV, tt.wantKv)
+				t.Errorf("Client.GetSecret() = %v, want %v", res.KV, tt.wantKv)
 			}
 		})
 	}

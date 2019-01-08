@@ -100,7 +100,7 @@ func TestNewClient(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *VaultClient
+		want    *Client
 		wantErr bool
 	}{
 		{"testOK", args{cfg}, vc, false},
@@ -149,7 +149,7 @@ func Example() {
 	}
 
 	// Get the Vault KV secret from kv_v1/path/my-secret
-	resV1, err := vaultCli.GetVaultSecret("kv_v1/path/my-secret")
+	resV1, err := vaultCli.GetSecret("kv_v1/path/my-secret")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -157,14 +157,14 @@ func Example() {
 		fmt.Printf("Secret %v: %v\n", k, v)
 	}
 	// Get the Vault KVv2 secret kv_v2/path/my-secret
-	resV2, err := vaultCli.GetVaultSecret("kv_v2/path/my-secret")
+	resV2, err := vaultCli.GetSecret("kv_v2/path/my-secret")
 	if err != nil {
 		fmt.Println(err)
 	}
 	for k, v := range resV2.KV {
 		fmt.Printf("Secret %v: %v\n", k, v)
 	}
-	resJSON, err := vaultCli.GetVaultSecret("kv_v2/path/json-secret")
+	resJSON, err := vaultCli.GetSecret("kv_v2/path/json-secret")
 	if err != nil {
 		fmt.Println(err)
 	}

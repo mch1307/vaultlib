@@ -1,6 +1,8 @@
 //Package vaultlib is a lightweight Go library for reading Vault KV secrets.
 //Interacts with Vault server using HTTP API only.
+//
 //First create a new *Config object using NewConfig().
+//
 //Then create you Vault client using NewClient(*Config).
 package vaultlib
 
@@ -14,8 +16,8 @@ import (
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
 )
 
-// VaultClient holds the vault client
-type VaultClient struct {
+// Client holds the vault client
+type Client struct {
 	Address    *url.URL
 	HTTPClient *http.Client
 	Config     *Config
@@ -100,12 +102,12 @@ func (c *Config) setAppRole(cred AppRoleCredentials) error {
 }
 
 // NewClient returns a new client based on the provided config
-func NewClient(c *Config) (*VaultClient, error) {
+func NewClient(c *Config) (*Client, error) {
 	// If no config provided, use a new one based on default values and env vars
 	if c == nil {
 		c = NewConfig()
 	}
-	var cli VaultClient
+	var cli Client
 	cli.Status = "New"
 	cli.Config = c
 	cli.Config.Address = c.Address

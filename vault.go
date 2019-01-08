@@ -8,9 +8,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Secret holds the returned secret
-// KV contains data in case of KV secret
-// JSONSecret contains data in case of JSON raw secret
+// Secret holds the returned secret.
+//
+// KV contains data in case of KV secret.
+//
+// JSONSecret contains data in case of JSON raw secret.
 type Secret struct {
 	KV         map[string]string
 	JSONSecret json.RawMessage
@@ -55,7 +57,7 @@ type vaultSecretMounts struct {
 	Type        string                 `json:"type"`
 }
 
-func (c *VaultClient) getKVInfo(path string) (version, name string, err error) {
+func (c *Client) getKVInfo(path string) (version, name string, err error) {
 	var mountResponse vaultMountResponse
 	var vaultSecretMount = make(map[string]vaultSecretMounts)
 	url := c.Address
@@ -116,7 +118,7 @@ type vaultAuth struct {
 }
 
 // renew the client's token, launched at client creation time as a go routine
-func (c *VaultClient) renewToken() {
+func (c *Client) renewToken() {
 	var vaultData vaultAuth
 	jsonToken := make(map[string]string)
 
@@ -155,7 +157,7 @@ func (c *VaultClient) renewToken() {
 }
 
 // setTokenFromAppRole get the token from Vault and set it in the client
-func (c *VaultClient) setTokenFromAppRole() error {
+func (c *Client) setTokenFromAppRole() error {
 	var vaultData vaultAuth
 	if c.Config.AppRoleCredentials.RoleID == "" {
 		return errors.New("No credentials provided")
@@ -201,10 +203,10 @@ type vaultSecretKV2 struct {
 	} `json:"metadata"`
 }
 
-// GetVaultSecret returns the Vault secret object
+// GetSecret returns the Vault secret object
 // KV: map[string]string if the secret is a KV
 // JSONSecret: json.RawMessage if the secret is a json
-func (c *VaultClient) GetVaultSecret(path string) (secret Secret, err error) {
+func (c *Client) GetSecret(path string) (secret Secret, err error) {
 	var v2Secret vaultSecretKV2
 	var vaultRsp rawSecretData
 	secret.KV = make(map[string]string)
