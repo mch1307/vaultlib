@@ -22,7 +22,7 @@ func main() {
 	fmt.Printf("AppRole token: %v\n", vaultCli.Token)
 	fmt.Printf("Client status: %v\n", vaultCli.Status)
 	// Get the Vault secret kv_v1/path/my-secret
-	resV1, err := vaultCli.GetVaultSecret("kv_v1/path/my-secret")
+	resV1, err := vaultCli.GetSecret("kv_v1/path/my-secret")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -33,7 +33,7 @@ func main() {
 	fmt.Printf("Client status: %v\n", vaultCli.Status)
 
 	// Get the Vault secret kv_v2/path/my-secret
-	resV2, err := vaultCli.GetVaultSecret("kv_v2/path/json-secret")
+	resV2, err := vaultCli.GetSecret("kv_v2/path/json-secret")
 	if err != nil {
 		fmt.Println(err)
 	}
