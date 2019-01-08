@@ -1,11 +1,13 @@
 package vaultlib
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestVaultClient_getKVInfo(t *testing.T) {
@@ -110,29 +112,34 @@ func TestVaultClient_GetVaultSecret(t *testing.T) {
 	}
 	conf.Address = "https://localhost:8200"
 	badCli, _ := NewClient(conf)
-
+	expectedJSON := []byte(`{"json-secret":{"first-secret":"first-value","second-secret":"second-value"}}`)
 	tests := []struct {
-		name    string
-		cli     *VaultClient
-		path    string
-		wantKv  map[string]string
-		wantErr bool
+		name     string
+		cli      *VaultClient
+		path     string
+		wantKv   map[string]string
+		wantJSON json.RawMessage
+		wantErr  bool
 	}{
-		{"kvv1", vc, "kv_v1/path/my-secret", map[string]string{"my-v1-secret": "my-v1-secret-value"}, false},
+		{"kvv1", vc, "kv_v1/path/my-secret", map[string]string{"my-v1-secret": "my-v1-secret-value"}, nil, false},
 		{"kvv2", vc, "kv_v2/path/my-secret", map[string]string{"my-first-secret": "my-first-secret-value",
-			"my-second-secret": "my-second-secret-value"}, false},
-		{"invalidURL", badCli, "kv_v1/path/my-secret", map[string]string{}, true},
+			"my-second-secret": "my-second-secret-value"}, nil, false},
+		{"json-secretV2", vc, "kv_v2/path/json-secret", map[string]string{}, expectedJSON, false},
+		{"json-secretV1", vc, "kv_v1/path/json-secret", map[string]string{}, expectedJSON, false},
+		{"invalidURL", badCli, "kv_v1/path/my-secret", map[string]string{}, nil, true},
 	}
+	//wait so that token renewal takes place
+	time.Sleep(12 * time.Second)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := tt.cli
-			gotKv, err := c.GetVaultSecret(tt.path)
+			res, err := c.GetVaultSecret(tt.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("VaultClient.GetVaultSecret() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(gotKv, tt.wantKv) {
-				t.Errorf("VaultClient.GetVaultSecret() = %v, want %v", gotKv, tt.wantKv)
+			if !reflect.DeepEqual(res.KV, tt.wantKv) || !reflect.DeepEqual(res.JSONSecret, tt.wantJSON) {
+				t.Errorf("VaultClient.GetVaultSecret() = %v, want %v", res.KV, tt.wantKv)
 			}
 		})
 	}

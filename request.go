@@ -26,7 +26,7 @@ func newRequest(method, token string, url *url.URL) (*request, error) {
 
 	req.Req, err = http.NewRequest(method, url.String(), nil)
 	if err != nil {
-		return req, err
+		return req, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
 	req.HTTPClient = cleanhttp.DefaultPooledClient()
@@ -36,7 +36,7 @@ func newRequest(method, token string, url *url.URL) (*request, error) {
 	if req.Token != "" {
 		req.Req.Header.Set("X-Vault-Token", req.Token)
 	}
-	return req, err
+	return req, errors.Wrap(errors.WithStack(err), errInfo())
 
 }
 
@@ -44,7 +44,7 @@ func newRequest(method, token string, url *url.URL) (*request, error) {
 func (r *request) setJSONBody(val interface{}) error {
 	buf, err := json.Marshal(val)
 	if err != nil {
-		return err
+		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
 	r.Req.Body = ioutil.NopCloser(bytes.NewReader(buf))
 	return nil
