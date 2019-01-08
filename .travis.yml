@@ -4,8 +4,6 @@ go:
     - 1.11.4
 install: true
 sudo: required
-go:
-  - tip
 services:
   - docker
 before_install:
