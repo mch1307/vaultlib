@@ -22,6 +22,8 @@ sleep 5
 # create secrets
 ./vault kv put kv_v1/path/my-secret my-v1-secret=my-v1-secret-value >> /tmp/vaultdev.log
 ./vault kv put kv_v2/path/my-secret my-first-secret=my-first-secret-value my-second-secret=my-second-secret-value >> /tmp/vaultdev.log
+./vault kv put kv_v2/path/json-secret @./test-files/secret.json >> /tmp/vaultdev.log
+./vault kv put kv_v1/path/json-secret @./test-files/secret.json >> /tmp/vaultdev.log
 
 # create policy
 ./vault policy write VaultDevAdmin test-files/VaultPolicy.hcl >> /tmp/vaultdev.log
@@ -29,6 +31,6 @@ sleep 5
 # create approle
 ./vault auth enable approle >> /tmp/vaultdev.log
 #./vault write auth/approle/role/my-role policies=VaultDevAdmin secret_id_ttl=100m token_num_uses=100 token_ttl=100m token_max_ttl=300m secret_id_num_uses=40 >> /tmp/vaultdev.log
-./vault write auth/approle/role/my-role policies=VaultDevAdmin token_num_uses=100 token_ttl=10s token_max_ttl=300m secret_id_num_uses=40 >> /tmp/vaultdev.log
+./vault write auth/approle/role/my-role policies=VaultDevAdmin token_num_uses=100 token_ttl=360s token_max_ttl=300m secret_id_num_uses=40 >> /tmp/vaultdev.log
 
 unset VAULT_TOKEN

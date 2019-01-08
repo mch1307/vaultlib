@@ -22,21 +22,22 @@ func main() {
 	fmt.Printf("AppRole token: %v\n", vaultCli.Token)
 	fmt.Printf("Client status: %v\n", vaultCli.Status)
 	// Get the Vault secret kv_v1/path/my-secret
-	kv, err := vaultCli.GetVaultSecret("kv_v1/path/my-secret")
+	resV1, err := vaultCli.GetVaultSecret("kv_v1/path/my-secret")
 	if err != nil {
 		fmt.Println(err)
 	}
-	for k, v := range kv {
+	for k, v := range resV1.KV {
 		fmt.Printf("Secret %v: %v\n", k, v)
 	}
 	time.Sleep(30 * time.Second)
 	fmt.Printf("Client status: %v\n", vaultCli.Status)
+
 	// Get the Vault secret kv_v2/path/my-secret
-	kv2, err := vaultCli.GetVaultSecret("kv_v2/path/my-secret")
+	resV2, err := vaultCli.GetVaultSecret("kv_v2/path/json-secret")
 	if err != nil {
 		fmt.Println(err)
 	}
-	for k, v := range kv2 {
+	for k, v := range resV2.KV {
 		fmt.Printf("Secret %v: %v\n", k, v)
 	}
 }

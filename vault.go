@@ -8,7 +8,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-//VaultResponse holds the generic json response from Vault server
+// Secret holds the returned secret
+// KV contains data in case of KV secret
+// JSONSecret contains data in case of JSON raw secret
+type Secret struct {
+	KV         map[string]string
+	JSONSecret json.RawMessage
+}
+
+type rawSecretData struct {
+	Data json.RawMessage
+}
+
+// vaultResponse holds the generic json response from Vault server
 type vaultResponse struct {
 	RequestID     string          `json:"request_id"`
 	LeaseID       string          `json:"lease_id"`
@@ -20,7 +32,7 @@ type vaultResponse struct {
 	Auth          json.RawMessage `json:"auth"`
 }
 
-//vaultMountResponse holds the Vault Mount list response (used to unmarshall the globa vault response)
+// vaultMountResponse holds the Vault Mount list response (used to unmarshall the global vault response)
 type vaultMountResponse struct {
 	Auth   json.RawMessage `json:"auth"`
 	Secret json.RawMessage `json:"secret"`
@@ -103,6 +115,7 @@ type vaultAuth struct {
 	EntityID      string `json:"entity_id"`
 }
 
+// renew the client's token, launched at client creation time as a go routine
 func (c *VaultClient) renewToken() {
 	var vaultData vaultAuth
 	jsonToken := make(map[string]string)
@@ -141,7 +154,7 @@ func (c *VaultClient) renewToken() {
 	}
 }
 
-//setTokenFromAppRole get the token from Vault and set it in the client
+// setTokenFromAppRole get the token from Vault and set it in the client
 func (c *VaultClient) setTokenFromAppRole() error {
 	var vaultData vaultAuth
 	if c.Config.AppRoleCredentials.RoleID == "" {
@@ -179,7 +192,7 @@ func (c *VaultClient) setTokenFromAppRole() error {
 
 // vaultSecretKV2 holds the Vault secret (kv v2)
 type vaultSecretKV2 struct {
-	Data     map[string]string `json:"data"`
+	Data     map[string]interface{} `json:"data"`
 	Metadata struct {
 		CreatedTime  time.Time `json:"created_time"`
 		DeletionTime string    `json:"deletion_time"`
@@ -188,17 +201,17 @@ type vaultSecretKV2 struct {
 	} `json:"metadata"`
 }
 
-// GetVaultSecret returns the Vault secret key/value list as a map[string]string
-//
-// Loop through the map to get keys and values
-func (c *VaultClient) GetVaultSecret(path string) (kv map[string]string, err error) {
+// GetVaultSecret returns the Vault secret object
+// KV: map[string]string if the secret is a KV
+// JSONSecret: json.RawMessage if the secret is a json
+func (c *VaultClient) GetVaultSecret(path string) (secret Secret, err error) {
 	var v2Secret vaultSecretKV2
-	v1Secret := make(map[string]string)
-	secretList := make(map[string]string)
+	var vaultRsp rawSecretData
+	secret.KV = make(map[string]string)
 
 	kvVersion, kvName, err := c.getKVInfo(path)
 	if err != nil {
-		return secretList, errors.Wrap(errors.WithStack(err), errInfo())
+		return secret, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 	url := c.Address
 
@@ -210,32 +223,53 @@ func (c *VaultClient) GetVaultSecret(path string) (kv map[string]string, err err
 
 	req, err := newRequest("GET", c.Token, url)
 	if err != nil {
-		return secretList, errors.Wrap(errors.WithStack(err), errInfo())
+		return secret, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
 	rsp, err := req.execute()
 	if err != nil {
-		return secretList, errors.Wrap(errors.WithStack(err), errInfo())
+		return secret, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
 	// parse to Vx and get a simple kv map back
 	if kvVersion == "2" {
 		err = json.Unmarshal([]byte(rsp.Data), &v2Secret)
 		if err != nil {
-			return secretList, errors.Wrap(errors.WithStack(err), errInfo())
+			return secret, errors.Wrap(errors.WithStack(err), errInfo())
 		}
 		for k, v := range v2Secret.Data {
-			secretList[k] = v
+			switch t := v.(type) {
+			case string:
+				secret.KV[k] = t
+			case interface{}:
+				//secret.JSONSecret = rsp.Data
+				//Parse twice to remove
+				err = json.Unmarshal([]byte(rsp.Data), &vaultRsp)
+				if err != nil {
+					return secret, err
+				}
+				err := json.Unmarshal([]byte(vaultRsp.Data), &secret.JSONSecret)
+				if err != nil {
+					return secret, err
+				}
+				return secret, err
+			}
 		}
 	} else if kvVersion == "1" {
-		err = json.Unmarshal([]byte(rsp.Data), &v1Secret)
+		raw := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rsp.Data), &raw)
 		if err != nil {
-			return secretList, errors.Wrap(errors.WithStack(err), errInfo())
+			return secret, errors.Wrap(errors.WithStack(err), errInfo())
 		}
-		for k, v := range v1Secret {
-			secretList[k] = v
+		for k, v := range raw {
+			switch t := v.(type) {
+			case string:
+				secret.KV[k] = t
+			case interface{}:
+				secret.JSONSecret = rsp.Data
+				return secret, err
+			}
 		}
 	}
-
-	return secretList, nil
+	return secret, nil
 }
