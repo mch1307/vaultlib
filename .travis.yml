@@ -12,10 +12,3 @@ before_install:
   - go get github.com/mattn/goveralls
 script:
   - goveralls -v -service=travis-ci
-deploy:
-- provider: script
-  skip_cleanup: true
-  script: curl -sL https://git.io/goreleaser | bash
-  on:
-    tags: true
-    condition: $TRAVIS_OS_NAME = linux
