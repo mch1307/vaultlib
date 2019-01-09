@@ -96,9 +96,8 @@ func NewConfig() *Config {
 
 // setAppRole sets the app role role_id and secret_id in config
 // only used in tests (temp)
-func (c *Config) setAppRole(cred AppRoleCredentials) error {
+func (c *Config) setAppRole(cred AppRoleCredentials) {
 	c.AppRoleCredentials = &cred
-	return nil
 }
 
 // NewClient returns a new client based on the provided config

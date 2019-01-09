@@ -17,7 +17,7 @@ func TestVaultClient_getKVInfo(t *testing.T) {
 		RoleID:   vaultRoleID,
 		SecretID: vaultSecretID,
 	}
-	_ = conf.setAppRole(cred)
+	conf.setAppRole(cred)
 	badReqConf := NewConfig()
 	badReqConf.Address = "https://localhost:8200"
 	noCred := AppRoleCredentials{
@@ -154,6 +154,7 @@ func TestClient_RawRequest(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get vault cli %v", err)
 	}
+	vc.Token = "my-dev-root-vault-token"
 
 	type args struct {
 		method  string
@@ -169,8 +170,8 @@ func TestClient_RawRequest(t *testing.T) {
 	}{
 		{"initEndpoint", vc, args{"GET", "/v1/sys/init", nil}, []byte(`{"initialized":true}
 `), false},
-		// 		{"badEndpoint", vc, args{"GET", "/v1/wrong/path", nil}, []byte(`{"errors":["no handler for route 'wrong/path'"]}
-		// `), true},
+		{"badEndpoint", vc, args{"GET", "/v1/wrong/path", nil}, []byte(`{"errors":["no handler for route 'wrong/path'"]}
+`), true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

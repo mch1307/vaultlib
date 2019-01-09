@@ -72,8 +72,9 @@ func TestConfig_SetAppRole(t *testing.T) {
 				AppRoleCredentials: &tt.fields.AppRoleCredentials,
 				Token:              tt.fields.Token,
 			}
-			if err := c.setAppRole(tt.args.cred); (err != nil) != tt.wantErr {
-				t.Errorf("Config.setAppRole() error = %v, wantErr %v", err, tt.wantErr)
+			c.setAppRole(tt.args.cred)
+			if !reflect.DeepEqual(c.AppRoleCredentials, tt.args.cred) {
+				t.Errorf("Config.setAppRole() got %v, wantedr %v", c.AppRoleCredentials, tt.args.cred)
 			}
 		})
 	}
