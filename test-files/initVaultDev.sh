@@ -13,6 +13,8 @@ fi
 ./vault server -dev -dev-root-token-id ${VAULT_TOKEN}  > /tmp/vaultdev.log &
 # wait for vault server to be ready
 sleep 5
+# create token
+./vault token create -period=10s -id="my-renewable-token" >> /tmp/vaultdev.log
 
 # create KVs
 ./vault secrets enable -path=kv_v1/path/ kv >> /tmp/vaultdev.log
