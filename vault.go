@@ -303,7 +303,7 @@ func (c *Client) RawRequest(method, path string, payload json.RawMessage) (resul
 
 	rsp, err := req.executeRaw()
 	if err != nil {
-		return result, errors.Wrap(errors.WithStack(err), errInfo())
+		return rsp, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
 	return rsp, nil
