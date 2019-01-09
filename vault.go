@@ -308,3 +308,27 @@ func (c *Client) RawRequest(method, path string, payload json.RawMessage) (resul
 
 	return rsp, nil
 }
+
+type tokenRenewable struct {
+	Renewable bool `json:"renewable"`
+}
+
+func (c *Client) isCurrentTokenRenewable() bool {
+	var tokenRenew tokenRenewable
+	url := c.Address
+	url.Path = "/v1/auth/token/lookup-self"
+	req, err := newRequest("GET", c.Token, url)
+	if err != nil {
+		return false
+	}
+	res, err := req.execute()
+	if err != nil {
+		c.Status = err.Error()
+		return false
+	}
+	if err := json.Unmarshal(res.Data, &tokenRenew); err != nil {
+		c.Status = err.Error()
+		return false
+	}
+	return tokenRenew.Renewable
+}

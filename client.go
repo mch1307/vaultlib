@@ -131,6 +131,8 @@ func NewClient(c *Config) (*Client, error) {
 			cli.Status = "Authentication Error: " + err.Error()
 			return &cli, err
 		}
+	} else if cli.isCurrentTokenRenewable() {
+		go cli.renewToken()
 	}
 	cli.Status = "Token ready"
 	return &cli, nil

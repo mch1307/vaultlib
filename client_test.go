@@ -73,8 +73,8 @@ func TestConfig_SetAppRole(t *testing.T) {
 				Token:              tt.fields.Token,
 			}
 			c.setAppRole(tt.args.cred)
-			if !reflect.DeepEqual(c.AppRoleCredentials, tt.args.cred) {
-				t.Errorf("Config.setAppRole() got %v, wantedr %v", c.AppRoleCredentials, tt.args.cred)
+			if !reflect.DeepEqual(c.AppRoleCredentials, &tt.args.cred) {
+				t.Errorf("Config.setAppRole() got %v, want %v", c.AppRoleCredentials, &tt.args.cred)
 			}
 		})
 	}
@@ -85,9 +85,9 @@ func TestNewClient(t *testing.T) {
 	defaultCfg := NewConfig()
 	vc, _ := NewClient(defaultCfg)
 	// add token to client
-	vc.Token = "my-dev-root-vault-token"
+	vc.Token = "my-renewable-token"
 	// create new config with a vault token
-	os.Setenv("VAULT_TOKEN", "my-dev-root-vault-token")
+	os.Setenv("VAULT_TOKEN", "my-renewable-token")
 	cfg := NewConfig()
 	os.Unsetenv("VAULT_TOKEN")
 	// create new config without vault token
