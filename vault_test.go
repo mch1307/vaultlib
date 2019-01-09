@@ -155,11 +155,11 @@ func TestClient_RawRequest(t *testing.T) {
 		t.Errorf("Failed to get vault cli %v", err)
 	}
 	vc.Token = "my-dev-root-vault-token"
-
+	ch := make(chan int)
 	type args struct {
 		method  string
 		path    string
-		payload json.RawMessage
+		payload interface{}
 	}
 	tests := []struct {
 		name       string
@@ -172,6 +172,8 @@ func TestClient_RawRequest(t *testing.T) {
 `), false},
 		{"badEndpoint", vc, args{"GET", "/v1/wrong/path", nil}, []byte(`{"errors":["no handler for route 'wrong/path'"]}
 `), true},
+		{"invalidBody", vc, args{"GET", "/v1/sys/init", ch}, nil, true},
+		{"noMethod", vc, args{"", "/v1/sys/init", ch}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -281,7 +281,7 @@ func (c *Client) GetSecret(path string) (secret Secret, err error) {
 //
 // Specify http method, Vault path (ie /v1/ ) and optional json payload.
 // Return the Vault JSON response .
-func (c *Client) RawRequest(method, path string, payload json.RawMessage) (result json.RawMessage, err error) {
+func (c *Client) RawRequest(method, path string, payload interface{}) (result json.RawMessage, err error) {
 
 	if len(method) == 0 || len(path) == 0 {
 		return result, errors.New("Both method and path must be specified")
