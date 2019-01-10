@@ -19,6 +19,39 @@ type request struct {
 	Token      string
 }
 
+// RawRequest create and execute http request against Vault HTTP API for client.
+// Use the client's token for authentication.
+//
+// Specify http method, Vault path (ie /v1/ ) and optional json payload.
+// Return the Vault JSON response .
+func (c *Client) RawRequest(method, path string, payload interface{}) (result json.RawMessage, err error) {
+
+	if len(method) == 0 || len(path) == 0 {
+		return result, errors.New("Both method and path must be specified")
+	}
+
+	url := c.Address
+	url.Path = path
+
+	req, err := newRequest(method, c.Token, url)
+	if err != nil {
+		return result, errors.Wrap(errors.WithStack(err), errInfo())
+	}
+
+	if payload != nil {
+		if err = req.setJSONBody(payload); err != nil {
+			return result, errors.Wrap(errors.WithStack(err), errInfo())
+		}
+	}
+
+	rsp, err := req.executeRaw()
+	if err != nil {
+		return rsp, errors.Wrap(errors.WithStack(err), errInfo())
+	}
+
+	return rsp, nil
+}
+
 // Returns a ready to execute request
 func newRequest(method, token string, url *url.URL) (*request, error) {
 	var err error
@@ -49,6 +82,18 @@ func (r *request) setJSONBody(val interface{}) error {
 	r.Req.Body = ioutil.NopCloser(bytes.NewReader(buf))
 	return nil
 
+}
+
+// vaultResponse holds the generic json response from Vault server
+type vaultResponse struct {
+	RequestID     string          `json:"request_id"`
+	LeaseID       string          `json:"lease_id"`
+	Renewable     bool            `json:"renewable"`
+	LeaseDuration int             `json:"lease_duration"`
+	Data          json.RawMessage `json:"data"`
+	WrapInfo      json.RawMessage `json:"wrap_info"`
+	Warnings      json.RawMessage `json:"warnings"`
+	Auth          json.RawMessage `json:"auth"`
 }
 
 // Executes the request, parse the result to vaultResponse
