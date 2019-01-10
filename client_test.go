@@ -85,7 +85,7 @@ func TestNewClient(t *testing.T) {
 	defaultCfg := NewConfig()
 	vc, _ := NewClient(defaultCfg)
 	// add token to client
-	vc.Token = "my-renewable-token"
+	vc.Token.ID = "my-renewable-token"
 	// create new config with a vault token
 	os.Setenv("VAULT_TOKEN", "my-renewable-token")
 	cfg := NewConfig()

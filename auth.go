@@ -28,12 +28,13 @@ func (c *Client) renewToken() {
 	for {
 		duration := c.Lease - 1
 		time.Sleep(time.Second * time.Duration(duration))
-
+		c.Lock()
+		defer c.Unlock()
 		url := c.Address
 		url.Path = "v1/auth/token/renew"
-		jsonToken["token"] = c.Token
+		jsonToken["token"] = c.Token.ID
 
-		req, err := newRequest("POST", c.Token, url)
+		req, err := newRequest("POST", c.Token.ID, url)
 		if err != nil {
 			c.Status = "Error renewing token " + err.Error()
 			continue
@@ -69,7 +70,7 @@ func (c *Client) setTokenFromAppRole() error {
 	url := c.Address
 	url.Path = "/v1/auth/approle/login"
 
-	req, err := newRequest("POST", c.Token, url)
+	req, err := newRequest("POST", c.Token.ID, url)
 	if err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
@@ -87,10 +88,16 @@ func (c *Client) setTokenFromAppRole() error {
 	if jsonErr != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
-	if vaultData.Renewable {
+
+	c.Lock()
+	defer c.Unlock()
+	c.Token.ID = vaultData.ClientToken
+	if err = c.setTokenInfo(); err != nil {
+		return errors.Wrap(errors.WithStack(err), errInfo())
+	}
+	if c.Token.Renewable {
 		go c.renewToken()
 	}
-	c.Token = vaultData.ClientToken
 
 	return nil
 }
@@ -110,22 +117,23 @@ type tokenRenewable struct {
 	Renewable bool `json:"renewable"`
 }
 
-func (c *Client) isCurrentTokenRenewable() bool {
-	var tokenRenew tokenRenewable
+func (c *Client) setTokenInfo() error {
 	url := c.Address
 	url.Path = "/v1/auth/token/lookup-self"
-	req, err := newRequest("GET", c.Token, url)
+	var tokenInfo vaultTokenInfo
+	req, err := newRequest("GET", c.Token.ID, url)
 	if err != nil {
-		return false
+		return err
 	}
 	res, err := req.execute()
 	if err != nil {
 		c.Status = err.Error()
-		return false
+		return err
 	}
-	if err := json.Unmarshal(res.Data, &tokenRenew); err != nil {
+	if err := json.Unmarshal(res.Data, &tokenInfo); err != nil {
 		c.Status = err.Error()
-		return false
+		return err
 	}
-	return tokenRenew.Renewable
+	c.Token = &tokenInfo
+	return nil
 }

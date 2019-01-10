@@ -32,7 +32,7 @@ func TestVaultClient_setTokenFromAppRole(t *testing.T) {
 				Address:    tt.fields.Address,
 				HTTPClient: tt.fields.HTTPClient,
 				Config:     tt.fields.Config,
-				Token:      tt.fields.Token,
+				Token:      &vaultTokenInfo{ID: tt.fields.Token},
 				Status:     tt.fields.Status,
 			}
 			if err := c.setTokenFromAppRole(); (err != nil) != tt.wantErr {

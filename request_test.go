@@ -129,7 +129,7 @@ func TestClient_RawRequest(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get vault cli %v", err)
 	}
-	vc.Token = "my-dev-root-vault-token"
+	vc.Token.ID = "my-dev-root-vault-token"
 	ch := make(chan int)
 	type args struct {
 		method  string

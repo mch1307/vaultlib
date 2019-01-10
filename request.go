@@ -33,7 +33,7 @@ func (c *Client) RawRequest(method, path string, payload interface{}) (result js
 	url := c.Address
 	url.Path = path
 
-	req, err := newRequest(method, c.Token, url)
+	req, err := newRequest(method, c.Token.ID, url)
 	if err != nil {
 		return result, errors.Wrap(errors.WithStack(err), errInfo())
 	}

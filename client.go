@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
@@ -21,9 +22,31 @@ type Client struct {
 	Address    *url.URL
 	HTTPClient *http.Client
 	Config     *Config
-	Token      string
+	Token      *vaultTokenInfo
 	Lease      int
 	Status     string
+	sync.RWMutex
+	isAuthenticated bool
+}
+
+type vaultTokenInfo struct {
+	Accessor       string      `json:"accessor"`
+	CreationTime   int         `json:"creation_time"`
+	CreationTTL    int         `json:"creation_ttl"`
+	DisplayName    string      `json:"display_name"`
+	EntityID       string      `json:"entity_id"`
+	ExpireTime     interface{} `json:"expire_time"`
+	ExplicitMaxTTL int         `json:"explicit_max_ttl"`
+	ID             string      `json:"id"`
+	IssueTime      time.Time   `json:"issue_time"`
+	Meta           interface{} `json:"meta"`
+	NumUses        int         `json:"num_uses"`
+	Orphan         bool        `json:"orphan"`
+	Path           string      `json:"path"`
+	Policies       []string    `json:"policies"`
+	Renewable      bool        `json:"renewable"`
+	TTL            int         `json:"ttl"`
+	Type           string      `json:"type"`
 }
 
 // AppRoleCredentials holds the app role secret and role ids
@@ -123,16 +146,21 @@ func NewClient(c *Config) (*Client, error) {
 	}
 	cli.Address = u
 	cli.HTTPClient = cleanhttp.DefaultPooledClient()
-	cli.Token = c.Token
+	cli.Token.ID = c.Token
 
-	if cli.Token == "" {
+	if cli.Token.ID == "" {
 		err = cli.setTokenFromAppRole()
 		if err != nil {
 			cli.Status = "Authentication Error: " + err.Error()
 			return &cli, err
 		}
-	} else if cli.isCurrentTokenRenewable() {
-		go cli.renewToken()
+	} else {
+		if err = cli.setTokenInfo(); err != nil {
+			return &cli, err
+		}
+		if cli.Token.Renewable {
+			go cli.renewToken()
+		}
 	}
 	cli.Status = "Token ready"
 	return &cli, nil
