@@ -118,7 +118,7 @@ func TestNewClient(t *testing.T) {
 				t.Errorf("NewClient() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !tt.wantErr && !(got.Token == tt.want.Token) {
+			if !tt.wantErr && !(got.Status == tt.want.Status) {
 				t.Errorf("NewClient() = %v, want %v", got, tt.want)
 			}
 		})

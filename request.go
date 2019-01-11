@@ -119,6 +119,7 @@ func (r *request) executeRaw() ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(errors.WithStack(err), errInfo())
 	}
+	defer res.Body.Close()
 
 	body, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {

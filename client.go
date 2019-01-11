@@ -146,6 +146,7 @@ func NewClient(c *Config) (*Client, error) {
 	}
 	cli.Address = u
 	cli.HTTPClient = cleanhttp.DefaultPooledClient()
+	cli.Token = new(vaultTokenInfo)
 	cli.Token.ID = c.Token
 
 	if cli.Token.ID == "" {
@@ -156,12 +157,15 @@ func NewClient(c *Config) (*Client, error) {
 		}
 	} else {
 		if err = cli.setTokenInfo(); err != nil {
+			cli.Status = "Authentication Error: " + err.Error()
 			return &cli, err
 		}
 		if cli.Token.Renewable {
 			go cli.renewToken()
 		}
+
 	}
+
 	cli.Status = "Token ready"
 	return &cli, nil
 }

@@ -26,12 +26,13 @@ func (c *Client) renewToken() {
 	jsonToken := make(map[string]string)
 
 	for {
-		duration := c.Lease - 1
+		duration := c.Token.TTL - 2
 		time.Sleep(time.Second * time.Duration(duration))
 		c.Lock()
 		defer c.Unlock()
 		url := c.Address
 		url.Path = "v1/auth/token/renew"
+
 		jsonToken["token"] = c.Token.ID
 
 		req, err := newRequest("POST", c.Token.ID, url)
@@ -90,8 +91,8 @@ func (c *Client) setTokenFromAppRole() error {
 	}
 
 	c.Lock()
-	defer c.Unlock()
 	c.Token.ID = vaultData.ClientToken
+	c.Unlock()
 	if err = c.setTokenInfo(); err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
