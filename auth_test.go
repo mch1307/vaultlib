@@ -1,5 +1,52 @@
 package vaultlib
 
+import (
+	"reflect"
+	"testing"
+	"time"
+)
+
+func TestConfig_SetAppRole(t *testing.T) {
+	type fields struct {
+		Address            string
+		MaxRetries         int
+		Timeout            time.Duration
+		CAPath             string
+		InsecureSSL        bool
+		AppRoleCredentials AppRoleCredentials
+		Token              string
+	}
+	var f fields
+	type args struct {
+		cred AppRoleCredentials
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{"test1", f, args{AppRoleCredentials{RoleID: "role", SecretID: "secret"}}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Config{
+				Address:            tt.fields.Address,
+				MaxRetries:         tt.fields.MaxRetries,
+				Timeout:            tt.fields.Timeout,
+				CAPath:             tt.fields.CAPath,
+				InsecureSSL:        tt.fields.InsecureSSL,
+				AppRoleCredentials: &tt.fields.AppRoleCredentials,
+				Token:              tt.fields.Token,
+			}
+			c.setAppRole(tt.args.cred)
+			if !reflect.DeepEqual(c.AppRoleCredentials, &tt.args.cred) {
+				t.Errorf("Config.setAppRole() got %v, want %v", c.AppRoleCredentials, &tt.args.cred)
+			}
+		})
+	}
+}
+
 // func TestVaultClient_setTokenFromAppRole(t *testing.T) {
 // 	rightURL, _ := url.Parse("http://localhost:8200")
 // 	badURL, _ := url.Parse("https://localhost:8200")

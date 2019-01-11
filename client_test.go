@@ -6,7 +6,6 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -39,47 +38,6 @@ func TestNewConfig(t *testing.T) {
 	}
 }
 
-func TestConfig_SetAppRole(t *testing.T) {
-	type fields struct {
-		Address            string
-		MaxRetries         int
-		Timeout            time.Duration
-		CAPath             string
-		InsecureSSL        bool
-		AppRoleCredentials AppRoleCredentials
-		Token              string
-	}
-	var f fields
-	type args struct {
-		cred AppRoleCredentials
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		{"test1", f, args{AppRoleCredentials{RoleID: "role", SecretID: "secret"}}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Config{
-				Address:            tt.fields.Address,
-				MaxRetries:         tt.fields.MaxRetries,
-				Timeout:            tt.fields.Timeout,
-				CAPath:             tt.fields.CAPath,
-				InsecureSSL:        tt.fields.InsecureSSL,
-				AppRoleCredentials: &tt.fields.AppRoleCredentials,
-				Token:              tt.fields.Token,
-			}
-			c.setAppRole(tt.args.cred)
-			if !reflect.DeepEqual(c.AppRoleCredentials, &tt.args.cred) {
-				t.Errorf("Config.setAppRole() got %v, want %v", c.AppRoleCredentials, &tt.args.cred)
-			}
-		})
-	}
-}
-
 func TestNewClient(t *testing.T) {
 	// create client without token
 	defaultCfg := NewConfig()
@@ -94,6 +52,10 @@ func TestNewClient(t *testing.T) {
 	wrongTokenConfig := NewConfig()
 	wrongTokenConfig.Token = ""
 	wrongTokenConfig.AppRoleCredentials.SecretID = "bad-secret"
+	wrongTokenConfig.AppRoleCredentials.RoleID = "bad-roleid"
+	noAppRoleConfig := NewConfig()
+	noAppRoleConfig.AppRoleCredentials.RoleID = ""
+	noAppRoleConfig.Token = "bad-token"
 
 	type args struct {
 		c *Config
@@ -107,6 +69,7 @@ func TestNewClient(t *testing.T) {
 		{"testOK", args{cfg}, vc, false},
 		{"testFail", args{cfg}, vc, true},
 		{"testNilConfig", args{wrongTokenConfig}, nil, true},
+		{"noAppRoleConfig", args{noAppRoleConfig}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
