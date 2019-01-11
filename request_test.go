@@ -149,6 +149,7 @@ func TestClient_RawRequest(t *testing.T) {
 `), true},
 		{"invalidBody", vc, args{"GET", "/v1/sys/init", ch}, nil, true},
 		{"noMethod", vc, args{"", "/v1/sys/init", ch}, nil, true},
+		{"invalidMethod", vc, args{"@", "/v1/sys/init", ch}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
