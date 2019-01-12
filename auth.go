@@ -33,11 +33,8 @@ func (c *Client) renewToken() {
 
 		jsonToken["token"] = c.Token.ID
 
-		req, err := newRequest("POST", c.Token.ID, url)
-		if err != nil {
-			c.Status = "Error renewing token " + err.Error()
-			continue
-		}
+		req, _ := newRequest("POST", c.Token.ID, url)
+
 		req.setJSONBody(jsonToken)
 
 		resp, err := req.execute()
@@ -72,14 +69,9 @@ func (c *Client) setTokenFromAppRole() error {
 	url := c.Address
 	url.Path = "/v1/auth/approle/login"
 
-	req, err := newRequest("POST", c.Token.ID, url)
-	if err != nil {
-		return errors.Wrap(errors.WithStack(err), errInfo())
-	}
-	err = req.setJSONBody(c.Config.AppRoleCredentials)
-	if err != nil {
-		return errors.Wrap(errors.WithStack(err), errInfo())
-	}
+	req, _ := newRequest("POST", c.Token.ID, url)
+
+	req.setJSONBody(c.Config.AppRoleCredentials)
 
 	resp, err := req.execute()
 	if err != nil {
@@ -126,10 +118,9 @@ func (c *Client) setTokenInfo() error {
 	url := c.Address
 	url.Path = "/v1/auth/token/lookup-self"
 	var tokenInfo vaultTokenInfo
-	req, err := newRequest("GET", c.Token.ID, url)
-	if err != nil {
-		return err
-	}
+	c.isAuthenticated = false
+	req, _ := newRequest("GET", c.Token.ID, url)
+
 	res, err := req.execute()
 	if err != nil {
 		c.Status = err.Error()

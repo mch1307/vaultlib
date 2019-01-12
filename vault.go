@@ -43,10 +43,7 @@ func (c *Client) GetSecret(path string) (secret Secret, err error) {
 		url.Path = "/v1/" + path
 	}
 
-	req, err := newRequest("GET", c.Token.ID, url)
-	if err != nil {
-		return secret, errors.Wrap(errors.WithStack(err), errInfo())
-	}
+	req, _ := newRequest("GET", c.Token.ID, url)
 
 	rsp, err := req.execute()
 	if err != nil {
@@ -125,10 +122,7 @@ func (c *Client) getKVInfo(path string) (version, name string, err error) {
 	url := c.Address
 	url.Path = "/v1/sys/internal/ui/mounts"
 
-	req, err := newRequest("GET", c.Token.ID, url)
-	if err != nil {
-		return "", "", errors.Wrap(errors.WithStack(err), errInfo())
-	}
+	req, _ := newRequest("GET", c.Token.ID, url)
 
 	rsp, err := req.execute()
 	if err != nil {
