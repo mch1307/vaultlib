@@ -23,8 +23,8 @@ type Client struct {
 	HTTPClient *http.Client
 	Config     *Config
 	Token      *vaultTokenInfo
-	Lease      int
-	Status     string
+	//Lease      int
+	Status string
 	sync.RWMutex
 	isAuthenticated bool
 }

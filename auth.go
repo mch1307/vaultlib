@@ -28,8 +28,6 @@ func (c *Client) renewToken() {
 	for {
 		duration := c.Token.TTL - 2
 		time.Sleep(time.Second * time.Duration(duration))
-		c.Lock()
-		defer c.Unlock()
 		url := c.Address
 		url.Path = "v1/auth/token/renew"
 
@@ -40,11 +38,8 @@ func (c *Client) renewToken() {
 			c.Status = "Error renewing token " + err.Error()
 			continue
 		}
-		err = req.setJSONBody(jsonToken)
-		if err != nil {
-			c.Status = "Error renewing token " + err.Error()
-			continue
-		}
+		req.setJSONBody(jsonToken)
+
 		resp, err := req.execute()
 		if err != nil {
 			c.Status = "Error renewing token " + err.Error()
@@ -56,8 +51,14 @@ func (c *Client) renewToken() {
 			c.Status = "Error renewing token " + err.Error()
 			continue
 		}
-		c.Lease = vaultData.LeaseDuration
+
+		if err := c.setTokenInfo(); err != nil {
+			c.Status = "Error renewing token " + err.Error()
+			continue
+		}
+		c.Lock()
 		c.Status = "Token renewed"
+		c.Unlock()
 	}
 }
 
@@ -93,6 +94,7 @@ func (c *Client) setTokenFromAppRole() error {
 	c.Lock()
 	c.Token.ID = vaultData.ClientToken
 	c.Unlock()
+
 	if err = c.setTokenInfo(); err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
@@ -119,6 +121,8 @@ type tokenRenewable struct {
 }
 
 func (c *Client) setTokenInfo() error {
+	c.Lock()
+	defer c.Unlock()
 	url := c.Address
 	url.Path = "/v1/auth/token/lookup-self"
 	var tokenInfo vaultTokenInfo
@@ -129,12 +133,16 @@ func (c *Client) setTokenInfo() error {
 	res, err := req.execute()
 	if err != nil {
 		c.Status = err.Error()
+		c.isAuthenticated = false
 		return err
 	}
 	if err := json.Unmarshal(res.Data, &tokenInfo); err != nil {
 		c.Status = err.Error()
 		return err
 	}
+
 	c.Token = &tokenInfo
+	c.isAuthenticated = true
+
 	return nil
 }
