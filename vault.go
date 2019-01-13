@@ -50,7 +50,6 @@ func (c *Client) GetSecret(path string) (secret Secret, err error) {
 		return secret, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
-	// parse to Vx and get a simple kv map back
 	if kvVersion == "2" {
 		err = json.Unmarshal([]byte(rsp.Data), &v2Secret)
 		if err != nil {

@@ -124,7 +124,6 @@ func (c *Client) setTokenInfo() error {
 	res, err := req.execute()
 	if err != nil {
 		c.Status = err.Error()
-		c.isAuthenticated = false
 		return err
 	}
 	if err := json.Unmarshal(res.Data, &tokenInfo); err != nil {
