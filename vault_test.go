@@ -72,8 +72,14 @@ func TestVaultClient_GetSecret(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get vault cli %v", err)
 	}
+
 	conf.Address = "https://localhost:8200"
 	badCli, _ := NewClient(conf)
+
+	conf.Address = "http://localhost:8200"
+	conf.AppRoleCredentials.RoleID = noKVRoleID
+	conf.AppRoleCredentials.SecretID = noKVSecretID
+	noPrivCli, _ := NewClient(conf)
 	expectedJSON := []byte(`{"json-secret":{"first-secret":"first-value","second-secret":"second-value"}}`)
 	tests := []struct {
 		name     string
@@ -83,6 +89,7 @@ func TestVaultClient_GetSecret(t *testing.T) {
 		wantJSON json.RawMessage
 		wantErr  bool
 	}{
+		{"missingPrivileges", noPrivCli, "kv_v1/path/my-secret", map[string]string{}, nil, true},
 		{"kvv1", vc, "kv_v1/path/my-secret", map[string]string{"my-v1-secret": "my-v1-secret-value"}, nil, false},
 		{"kvv2", vc, "kv_v2/path/my-secret", map[string]string{"my-first-secret": "my-first-secret-value",
 			"my-second-secret": "my-second-secret-value"}, nil, false},

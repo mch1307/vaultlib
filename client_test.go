@@ -41,7 +41,10 @@ func TestNewConfig(t *testing.T) {
 func TestNewClient(t *testing.T) {
 	// create client without token
 	defaultCfg := NewConfig()
+	defaultCfg.AppRoleCredentials.RoleID = vaultRoleID
+	defaultCfg.AppRoleCredentials.SecretID = vaultSecretID
 	vc, _ := NewClient(defaultCfg)
+	//defaultCfg.Address = "@@@"
 	// add token to client
 	vc.Token.ID = "my-renewable-token"
 	// create new config with a vault token
@@ -67,6 +70,7 @@ func TestNewClient(t *testing.T) {
 		wantErr bool
 	}{
 		{"testOK", args{cfg}, vc, false},
+		//{"testNoCfg", args{defaultCfg}, nil, true},
 		{"testFail", args{cfg}, vc, true},
 		{"testNilConfig", args{wrongTokenConfig}, nil, true},
 		{"noAppRoleConfig", args{noAppRoleConfig}, nil, true},
