@@ -29,7 +29,7 @@ func Test_newRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newRequest(tt.args.method, tt.args.token, tt.args.url)
+			got, err := newRequest(tt.args.method, tt.args.token, tt.args.url.String())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("newRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -85,7 +85,7 @@ func Test_request_setJSONBody(t *testing.T) {
 	cred.SecretID = "bb"
 	htCli := new(http.Client)
 	url, _ := url.Parse("http://localhot:8200")
-	req, _ := newRequest("GET", "", url)
+	req, _ := newRequest("GET", "", url.String())
 	ch := make(chan int)
 
 	type fields struct {

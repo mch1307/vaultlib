@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	"github.com/pkg/errors"
@@ -30,10 +29,9 @@ func (c *Client) RawRequest(method, path string, payload interface{}) (result js
 		return result, errors.New("Both method and path must be specified")
 	}
 
-	url := c.Address
-	url.Path = path
+	url := c.Address.String() + path
 
-	req, err := newRequest(method, c.Token.ID, url)
+	req, err := newRequest(method, c.getTokenID(), url)
 	if err != nil {
 		return result, errors.Wrap(errors.WithStack(err), errInfo())
 	}
@@ -53,11 +51,11 @@ func (c *Client) RawRequest(method, path string, payload interface{}) (result js
 }
 
 // Returns a ready to execute request
-func newRequest(method, token string, url *url.URL) (*request, error) {
+func newRequest(method, token, url string) (*request, error) {
 	var err error
 	req := new(request)
 
-	req.Req, err = http.NewRequest(method, url.String(), nil)
+	req.Req, err = http.NewRequest(method, url, nil)
 	if err != nil {
 		return req, errors.Wrap(errors.WithStack(err), errInfo())
 	}

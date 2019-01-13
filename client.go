@@ -19,14 +19,13 @@ import (
 
 // Client holds the vault client
 type Client struct {
-	Address    *url.URL
-	HTTPClient *http.Client
-	Config     *Config
-	Token      *vaultTokenInfo
-	//Lease      int
-	Status string
 	sync.RWMutex
-	isAuthenticated bool
+	Address         *url.URL
+	HTTPClient      *http.Client
+	Config          *Config
+	Token           *vaultTokenInfo
+	Status          string
+	IsAuthenticated bool
 }
 
 type vaultTokenInfo struct {
@@ -168,4 +167,17 @@ func NewClient(c *Config) (*Client, error) {
 
 	cli.Status = "Token ready"
 	return &cli, nil
+}
+
+func (c *Client) getTokenID() string {
+	c.Lock()
+	defer c.Unlock()
+	tk := c.Token.ID
+	return tk
+}
+
+func (c *Client) setStatus(status string) {
+	c.RLock()
+	c.Status = status
+	c.RUnlock()
 }

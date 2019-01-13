@@ -35,12 +35,12 @@ func (c *Client) GetSecret(path string) (secret Secret, err error) {
 	if err != nil {
 		return secret, errors.Wrap(errors.WithStack(err), errInfo())
 	}
-	url := c.Address
+	url := c.Address.String()
 
 	if kvVersion == "2" {
-		url.Path = "/v1/" + kvName + "data/" + strings.TrimPrefix(path, kvName)
+		url = url + "/v1/" + kvName + "data/" + strings.TrimPrefix(path, kvName)
 	} else {
-		url.Path = "/v1/" + path
+		url = url + "/v1/" + path
 	}
 
 	req, _ := newRequest("GET", c.Token.ID, url)
@@ -118,10 +118,9 @@ type vaultSecretMounts struct {
 func (c *Client) getKVInfo(path string) (version, name string, err error) {
 	var mountResponse vaultMountResponse
 	var vaultSecretMount = make(map[string]vaultSecretMounts)
-	url := c.Address
-	url.Path = "/v1/sys/internal/ui/mounts"
+	url := c.Address.String() + "/v1/sys/internal/ui/mounts"
 
-	req, _ := newRequest("GET", c.Token.ID, url)
+	req, _ := newRequest("GET", c.getTokenID(), url)
 
 	rsp, err := req.execute()
 	if err != nil {

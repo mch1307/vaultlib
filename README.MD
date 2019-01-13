@@ -14,6 +14,7 @@ Reads kv secret values
 * Connect to Vault through app role
 * Read Vault secret, `kv` type (v1 or v2 "versioned")
 * Automatically renew token
+* Execute any HTTP request on Vault (RawRequest)
 
 ## Config
 

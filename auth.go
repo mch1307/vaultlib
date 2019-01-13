@@ -28,34 +28,31 @@ func (c *Client) renewToken() {
 	for {
 		duration := c.Token.TTL - 2
 		time.Sleep(time.Second * time.Duration(duration))
-		url := c.Address
-		url.Path = "v1/auth/token/renew"
 
-		jsonToken["token"] = c.Token.ID
+		url := c.Address.String() + "/v1/auth/token/renew"
 
-		req, _ := newRequest("POST", c.Token.ID, url)
+		jsonToken["token"] = c.getTokenID()
+
+		req, _ := newRequest("POST", jsonToken["token"], url)
 
 		req.setJSONBody(jsonToken)
 
 		resp, err := req.execute()
 		if err != nil {
-			c.Status = "Error renewing token " + err.Error()
+			c.setStatus("Error renewing token " + err.Error())
 			continue
 		}
 
 		jsonErr := json.Unmarshal([]byte(resp.Auth), &vaultData)
 		if jsonErr != nil {
-			c.Status = "Error renewing token " + err.Error()
+			c.setStatus("Error renewing token " + err.Error())
 			continue
 		}
 
 		if err := c.setTokenInfo(); err != nil {
-			c.Status = "Error renewing token " + err.Error()
+			c.setStatus("Error renewing token " + err.Error())
 			continue
 		}
-		c.Lock()
-		c.Status = "Token renewed"
-		c.Unlock()
 	}
 }
 
@@ -66,8 +63,7 @@ func (c *Client) setTokenFromAppRole() error {
 		return errors.New("No credentials provided")
 	}
 
-	url := c.Address
-	url.Path = "/v1/auth/approle/login"
+	url := c.Address.String() + "/v1/auth/approle/login"
 
 	req, _ := newRequest("POST", c.Token.ID, url)
 
@@ -113,26 +109,23 @@ type tokenRenewable struct {
 }
 
 func (c *Client) setTokenInfo() error {
-	c.Lock()
-	defer c.Unlock()
-	url := c.Address
-	url.Path = "/v1/auth/token/lookup-self"
+	url := c.Address.String() + "/v1/auth/token/lookup-self"
 	var tokenInfo vaultTokenInfo
-	c.isAuthenticated = false
-	req, _ := newRequest("GET", c.Token.ID, url)
+
+	req, _ := newRequest("GET", c.getTokenID(), url)
 
 	res, err := req.execute()
 	if err != nil {
-		c.Status = err.Error()
 		return err
 	}
 	if err := json.Unmarshal(res.Data, &tokenInfo); err != nil {
-		c.Status = err.Error()
 		return err
 	}
+	c.Lock()
+	defer c.Unlock()
 
 	c.Token = &tokenInfo
-	c.isAuthenticated = true
+	c.IsAuthenticated = true
 
 	return nil
 }
