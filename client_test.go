@@ -70,7 +70,7 @@ func TestNewClient(t *testing.T) {
 		wantErr bool
 	}{
 		{"testOK", args{cfg}, vc, false},
-		//{"testNoCfg", args{defaultCfg}, nil, true},
+		{"testNoCfg", args{}, nil, true},
 		{"testFail", args{cfg}, vc, true},
 		{"testNilConfig", args{wrongTokenConfig}, nil, true},
 		{"noAppRoleConfig", args{noAppRoleConfig}, nil, true},
