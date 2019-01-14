@@ -149,7 +149,7 @@ func (c *Client) getKVInfo(path string) (version, name string, err error) {
 				//kv v1
 				version = "1"
 			}
-			return version, name, nil
+			return
 		}
 	}
 	if len(version) == 0 {
