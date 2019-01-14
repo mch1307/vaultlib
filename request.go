@@ -21,7 +21,7 @@ type request struct {
 // RawRequest create and execute http request against Vault HTTP API for client.
 // Use the client's token for authentication.
 //
-// Specify http method, Vault path (ie /v1/ ) and optional json payload.
+// Specify http method, Vault path (ie /v1/auth/token/lookup) and optional json payload.
 // Return the Vault JSON response .
 func (c *Client) RawRequest(method, path string, payload interface{}) (result json.RawMessage, err error) {
 

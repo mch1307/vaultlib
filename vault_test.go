@@ -15,7 +15,7 @@ func TestVaultClient_getKVInfo(t *testing.T) {
 		RoleID:   vaultRoleID,
 		SecretID: vaultSecretID,
 	}
-	conf.setAppRole(cred)
+	conf.AppRoleCredentials = &cred
 	badReqConf := NewConfig()
 	badReqConf.Address = "https://localhost:8200"
 	noCred := AppRoleCredentials{

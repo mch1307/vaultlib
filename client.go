@@ -116,12 +116,6 @@ func NewConfig() *Config {
 	return &cfg
 }
 
-// setAppRole sets the app role role_id and secret_id in config
-// only used in tests (temp)
-func (c *Config) setAppRole(cred AppRoleCredentials) {
-	c.AppRoleCredentials = &cred
-}
-
 // NewClient returns a new client based on the provided config
 func NewClient(c *Config) (*Client, error) {
 	// If no config provided, use a new one based on default values and env vars
@@ -170,14 +164,22 @@ func NewClient(c *Config) (*Client, error) {
 }
 
 func (c *Client) getTokenID() string {
-	c.Lock()
-	defer c.Unlock()
-	tk := c.Token.ID
+	var tk string
+	c.withLockContext(func() {
+		tk = c.Token.ID
+	})
 	return tk
 }
 
 func (c *Client) setStatus(status string) {
-	c.RLock()
-	c.Status = status
-	c.RUnlock()
+	c.withLockContext(func() {
+		c.Status = status
+	})
+}
+
+func (c *Client) withLockContext(fn func()) {
+	c.Lock()
+	defer c.Unlock()
+
+	fn()
 }

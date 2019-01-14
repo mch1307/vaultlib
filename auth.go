@@ -78,10 +78,9 @@ func (c *Client) setTokenFromAppRole() error {
 	if jsonErr != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
-
-	c.Lock()
-	c.Token.ID = vaultData.ClientToken
-	c.Unlock()
+	c.withLockContext(func() {
+		c.Token.ID = vaultData.ClientToken
+	})
 
 	if err = c.setTokenInfo(); err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
@@ -121,11 +120,10 @@ func (c *Client) setTokenInfo() error {
 	if err := json.Unmarshal(res.Data, &tokenInfo); err != nil {
 		return err
 	}
-	c.Lock()
-	defer c.Unlock()
+	c.withLockContext(func() {
+		c.Token = &tokenInfo
+		c.IsAuthenticated = true
 
-	c.Token = &tokenInfo
-	c.IsAuthenticated = true
-
+	})
 	return nil
 }
