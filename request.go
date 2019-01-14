@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	"github.com/pkg/errors"
@@ -28,7 +29,9 @@ func (c *Client) RawRequest(method, path string, payload interface{}) (result js
 	if len(method) == 0 || len(path) == 0 {
 		return result, errors.New("Both method and path must be specified")
 	}
-
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
 	url := c.Address.String() + path
 
 	req, err := newRequest(method, c.getTokenID(), url)
