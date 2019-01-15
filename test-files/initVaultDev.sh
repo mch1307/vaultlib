@@ -29,10 +29,11 @@ sleep 5
 
 # create policy
 ./vault policy write VaultDevAdmin test-files/VaultPolicy.hcl >> /tmp/vaultdev.log
-
+./vault policy write VaultNoKV test-files/NoKVVaultPolicy.hcl >> /tmp/vaultdev.log
 # create approle
 ./vault auth enable approle >> /tmp/vaultdev.log
 #./vault write auth/approle/role/my-role policies=VaultDevAdmin secret_id_ttl=100m token_num_uses=100 token_ttl=100m token_max_ttl=300m secret_id_num_uses=40 >> /tmp/vaultdev.log
 ./vault write auth/approle/role/my-role policies=VaultDevAdmin token_num_uses=100 token_ttl=10s token_max_ttl=300m secret_id_num_uses=40 >> /tmp/vaultdev.log
+./vault write auth/approle/role/no-kv policies=VaultNoKV token_num_uses=2 token_ttl=30m token_max_ttl=300m secret_id_num_uses=40 >> /tmp/vaultdev.log
 
 unset VAULT_TOKEN

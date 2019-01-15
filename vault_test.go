@@ -15,7 +15,7 @@ func TestVaultClient_getKVInfo(t *testing.T) {
 		RoleID:   vaultRoleID,
 		SecretID: vaultSecretID,
 	}
-	conf.setAppRole(cred)
+	conf.AppRoleCredentials = &cred
 	badReqConf := NewConfig()
 	badReqConf.Address = "https://localhost:8200"
 	noCred := AppRoleCredentials{
@@ -72,8 +72,14 @@ func TestVaultClient_GetSecret(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get vault cli %v", err)
 	}
+
 	conf.Address = "https://localhost:8200"
 	badCli, _ := NewClient(conf)
+
+	conf.Address = "http://localhost:8200"
+	conf.AppRoleCredentials.RoleID = noKVRoleID
+	conf.AppRoleCredentials.SecretID = noKVSecretID
+	// noPrivCli, _ := NewClient(conf)
 	expectedJSON := []byte(`{"json-secret":{"first-secret":"first-value","second-secret":"second-value"}}`)
 	tests := []struct {
 		name     string
@@ -89,6 +95,7 @@ func TestVaultClient_GetSecret(t *testing.T) {
 		{"json-secretV2", vc, "kv_v2/path/json-secret", map[string]string{}, expectedJSON, false},
 		{"json-secretV1", vc, "kv_v1/path/json-secret", map[string]string{}, expectedJSON, false},
 		{"invalidURL", badCli, "kv_v1/path/my-secret", map[string]string{}, nil, true},
+		//{"missingPrivileges", noPrivCli, "kv_v1/path/my-secret", map[string]string{}, nil, true},
 	}
 	//wait so that token renewal takes place
 	time.Sleep(12 * time.Second)

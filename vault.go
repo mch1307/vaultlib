@@ -35,25 +35,21 @@ func (c *Client) GetSecret(path string) (secret Secret, err error) {
 	if err != nil {
 		return secret, errors.Wrap(errors.WithStack(err), errInfo())
 	}
-	url := c.Address
+	url := c.address.String()
 
 	if kvVersion == "2" {
-		url.Path = "/v1/" + kvName + "data/" + strings.TrimPrefix(path, kvName)
+		url = url + "/v1/" + kvName + "data/" + strings.TrimPrefix(path, kvName)
 	} else {
-		url.Path = "/v1/" + path
+		url = url + "/v1/" + path
 	}
 
-	req, err := newRequest("GET", c.Token, url)
-	if err != nil {
-		return secret, errors.Wrap(errors.WithStack(err), errInfo())
-	}
+	req, _ := c.newRequest("GET", url)
 
 	rsp, err := req.execute()
 	if err != nil {
 		return secret, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
-	// parse to Vx and get a simple kv map back
 	if kvVersion == "2" {
 		err = json.Unmarshal([]byte(rsp.Data), &v2Secret)
 		if err != nil {
@@ -122,13 +118,9 @@ type vaultSecretMounts struct {
 func (c *Client) getKVInfo(path string) (version, name string, err error) {
 	var mountResponse vaultMountResponse
 	var vaultSecretMount = make(map[string]vaultSecretMounts)
-	url := c.Address
-	url.Path = "/v1/sys/internal/ui/mounts"
+	url := c.address.String() + "/v1/sys/internal/ui/mounts"
 
-	req, err := newRequest("GET", c.Token, url)
-	if err != nil {
-		return "", "", errors.Wrap(errors.WithStack(err), errInfo())
-	}
+	req, _ := c.newRequest("GET", url)
 
 	rsp, err := req.execute()
 	if err != nil {
@@ -157,6 +149,7 @@ func (c *Client) getKVInfo(path string) (version, name string, err error) {
 				//kv v1
 				version = "1"
 			}
+			break
 		}
 	}
 	if len(version) == 0 {

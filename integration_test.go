@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-var vaultRoleID, vaultSecretID string
+var vaultRoleID, vaultSecretID, noKVRoleID, noKVSecretID string
 
 var vaultVersion string
 
@@ -51,6 +51,27 @@ func prepareVault() {
 		log.Fatalf("error getting secret id %v", err)
 	}
 	vaultSecretID = string(out)
+
+	cmd = exec.Command("./vault", "read", "-field=role_id", "auth/approle/role/no-kv/role-id")
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "VAULT_TOKEN=my-dev-root-vault-token")
+	cmd.Env = append(cmd.Env, "VAULT_ADDR=http://localhost:8200")
+
+	out, err = cmd.Output()
+	if err != nil {
+		log.Fatalf("error getting role id %v %v", err, out)
+	}
+	noKVRoleID = string(out)
+
+	cmd = exec.Command("./vault", "write", "-field=secret_id", "-f", "auth/approle/role/no-kv/secret-id")
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "VAULT_TOKEN=my-dev-root-vault-token")
+	cmd.Env = append(cmd.Env, "VAULT_ADDR=http://localhost:8200")
+	out, err = cmd.Output()
+	if err != nil {
+		log.Fatalf("error getting secret id %v", err)
+	}
+	noKVSecretID = string(out)
 	os.Unsetenv("VAULT_TOKEN")
 
 }

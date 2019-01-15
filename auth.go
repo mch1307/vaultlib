@@ -26,57 +26,49 @@ func (c *Client) renewToken() {
 	jsonToken := make(map[string]string)
 
 	for {
-		duration := c.Lease - 1
+		duration := c.token.TTL - 2
 		time.Sleep(time.Second * time.Duration(duration))
 
-		url := c.Address
-		url.Path = "v1/auth/token/renew"
-		jsonToken["token"] = c.Token
+		url := c.address.String() + "/v1/auth/token/renew"
 
-		req, err := newRequest("POST", c.Token, url)
-		if err != nil {
-			c.Status = "Error renewing token " + err.Error()
-			continue
-		}
-		err = req.setJSONBody(jsonToken)
-		if err != nil {
-			c.Status = "Error renewing token " + err.Error()
-			continue
-		}
+		jsonToken["token"] = c.getTokenID()
+
+		req, _ := c.newRequest("POST", url)
+
+		req.setJSONBody(jsonToken)
+
 		resp, err := req.execute()
 		if err != nil {
-			c.Status = "Error renewing token " + err.Error()
+			c.setStatus("Error renewing token " + err.Error())
 			continue
 		}
 
 		jsonErr := json.Unmarshal([]byte(resp.Auth), &vaultData)
 		if jsonErr != nil {
-			c.Status = "Error renewing token " + err.Error()
+			c.setStatus("Error renewing token " + err.Error())
 			continue
 		}
-		c.Lease = vaultData.LeaseDuration
-		c.Status = "Token renewed"
+
+		if err := c.setTokenInfo(); err != nil {
+			c.setStatus("Error renewing token " + err.Error())
+			continue
+		}
+		c.setStatus("token renewed")
 	}
 }
 
 // setTokenFromAppRole get the token from Vault and set it in the client
 func (c *Client) setTokenFromAppRole() error {
 	var vaultData vaultAuth
-	if c.Config.AppRoleCredentials.RoleID == "" {
+	if c.config.AppRoleCredentials.RoleID == "" {
 		return errors.New("No credentials provided")
 	}
 
-	url := c.Address
-	url.Path = "/v1/auth/approle/login"
+	url := c.address.String() + "/v1/auth/approle/login"
 
-	req, err := newRequest("POST", c.Token, url)
-	if err != nil {
-		return errors.Wrap(errors.WithStack(err), errInfo())
-	}
-	err = req.setJSONBody(c.Config.AppRoleCredentials)
-	if err != nil {
-		return errors.Wrap(errors.WithStack(err), errInfo())
-	}
+	req, _ := c.newRequest("POST", url)
+
+	req.setJSONBody(c.config.AppRoleCredentials)
 
 	resp, err := req.execute()
 	if err != nil {
@@ -87,10 +79,16 @@ func (c *Client) setTokenFromAppRole() error {
 	if jsonErr != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
-	if vaultData.Renewable {
+	c.withLockContext(func() {
+		c.token.ID = vaultData.ClientToken
+	})
+
+	if err = c.setTokenInfo(); err != nil {
+		return errors.Wrap(errors.WithStack(err), errInfo())
+	}
+	if c.token.Renewable {
 		go c.renewToken()
 	}
-	c.Token = vaultData.ClientToken
 
 	return nil
 }
@@ -106,26 +104,23 @@ type vaultSecretKV2 struct {
 	} `json:"metadata"`
 }
 
-type tokenRenewable struct {
-	Renewable bool `json:"renewable"`
-}
+func (c *Client) setTokenInfo() error {
+	url := c.address.String() + "/v1/auth/token/lookup-self"
+	var tokenInfo VaultTokenInfo
 
-func (c *Client) isCurrentTokenRenewable() bool {
-	var tokenRenew tokenRenewable
-	url := c.Address
-	url.Path = "/v1/auth/token/lookup-self"
-	req, err := newRequest("GET", c.Token, url)
-	if err != nil {
-		return false
-	}
+	req, _ := c.newRequest("GET", url)
+
 	res, err := req.execute()
 	if err != nil {
-		c.Status = err.Error()
-		return false
+		return err
 	}
-	if err := json.Unmarshal(res.Data, &tokenRenew); err != nil {
-		c.Status = err.Error()
-		return false
+	if err := json.Unmarshal(res.Data, &tokenInfo); err != nil {
+		return err
 	}
-	return tokenRenew.Renewable
+	c.withLockContext(func() {
+		c.token = &tokenInfo
+		c.isAuthenticated = true
+
+	})
+	return nil
 }

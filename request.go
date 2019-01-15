@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
+	"strings"
 
-	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	"github.com/pkg/errors"
 )
 
@@ -22,18 +21,19 @@ type request struct {
 // RawRequest create and execute http request against Vault HTTP API for client.
 // Use the client's token for authentication.
 //
-// Specify http method, Vault path (ie /v1/ ) and optional json payload.
+// Specify http method, Vault path (ie /v1/auth/token/lookup) and optional json payload.
 // Return the Vault JSON response .
 func (c *Client) RawRequest(method, path string, payload interface{}) (result json.RawMessage, err error) {
 
 	if len(method) == 0 || len(path) == 0 {
 		return result, errors.New("Both method and path must be specified")
 	}
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	url := c.address.String() + path
 
-	url := c.Address
-	url.Path = path
-
-	req, err := newRequest(method, c.Token, url)
+	req, err := c.newRequest(method, url)
 	if err != nil {
 		return result, errors.Wrap(errors.WithStack(err), errInfo())
 	}
@@ -53,21 +53,21 @@ func (c *Client) RawRequest(method, path string, payload interface{}) (result js
 }
 
 // Returns a ready to execute request
-func newRequest(method, token string, url *url.URL) (*request, error) {
+func (c *Client) newRequest(method, url string) (*request, error) {
 	var err error
 	req := new(request)
 
-	req.Req, err = http.NewRequest(method, url.String(), nil)
+	req.Req, err = http.NewRequest(method, url, nil)
 	if err != nil {
 		return req, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
-	req.HTTPClient = cleanhttp.DefaultPooledClient()
-	req.Token = token
+	req.HTTPClient = c.httpClient
+	token := c.getTokenID()
 
 	req.Req.Header.Set("Content-Type", "application/json")
-	if req.Token != "" {
-		req.Req.Header.Set("X-Vault-Token", req.Token)
+	if token != "" {
+		req.Req.Header.Set("X-Vault-token", token)
 	}
 	return req, errors.Wrap(errors.WithStack(err), errInfo())
 
@@ -119,6 +119,7 @@ func (r *request) executeRaw() ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(errors.WithStack(err), errInfo())
 	}
+	defer res.Body.Close()
 
 	body, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {

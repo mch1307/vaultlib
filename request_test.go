@@ -12,6 +12,7 @@ import (
 )
 
 func Test_newRequest(t *testing.T) {
+	cli, _ := NewClient(nil)
 	testURL, _ := url.Parse("http://localhost:8200")
 	emptyReq := new(request)
 	type args struct {
@@ -29,7 +30,7 @@ func Test_newRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newRequest(tt.args.method, tt.args.token, tt.args.url)
+			got, err := cli.newRequest(tt.args.method, tt.args.url.String())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("newRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -81,11 +82,12 @@ func Test_request_execute(t *testing.T) {
 
 func Test_request_setJSONBody(t *testing.T) {
 	var cred AppRoleCredentials
+	cli, _ := NewClient(nil)
 	cred.RoleID = "aa"
 	cred.SecretID = "bb"
 	htCli := new(http.Client)
 	url, _ := url.Parse("http://localhot:8200")
-	req, _ := newRequest("GET", "", url)
+	req, _ := cli.newRequest("GET", url.String())
 	ch := make(chan int)
 
 	type fields struct {
@@ -129,7 +131,7 @@ func TestClient_RawRequest(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get vault cli %v", err)
 	}
-	vc.Token = "my-dev-root-vault-token"
+	vc.token.ID = "my-dev-root-vault-token"
 	ch := make(chan int)
 	type args struct {
 		method  string
@@ -149,6 +151,7 @@ func TestClient_RawRequest(t *testing.T) {
 `), true},
 		{"invalidBody", vc, args{"GET", "/v1/sys/init", ch}, nil, true},
 		{"noMethod", vc, args{"", "/v1/sys/init", ch}, nil, true},
+		{"invalidMethod", vc, args{"@", "/v1/sys/init", ch}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
