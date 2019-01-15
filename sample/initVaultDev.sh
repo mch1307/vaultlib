@@ -20,7 +20,7 @@ vault policy write VaultDevAdmin ./VaultPolicy.hcl > /dev/null 2>&1
 
 # create approle
 vault auth enable approle > /dev/null 2>&1
-vault write auth/approle/role/my-role policies=VaultDevAdmin secret_id_ttl=1000m token_num_uses=5 token_ttl=10s token_max_ttl=30m secret_id_num_uses=40 > /dev/null 2>&1
+vault write auth/approle/role/my-role policies=VaultDevAdmin secret_id_ttl=1000m token_num_uses=90 token_ttl=10s token_max_ttl=30m secret_id_num_uses=40 > /dev/null 2>&1
 export VAULT_ROLEID=`vault read -field=role_id auth/approle/role/my-role/role-id`
 export VAULT_SECRETID=`vault write -field=secret_id -f auth/approle/role/my-role/secret-id`
 

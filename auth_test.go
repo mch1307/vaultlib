@@ -29,14 +29,14 @@ func TestVaultClient_setTokenFromAppRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Client{
-				Address:    tt.fields.Address,
-				HTTPClient: tt.fields.HTTPClient,
-				Config:     tt.fields.Config,
-				Token:      &vaultTokenInfo{ID: tt.fields.Token},
-				Status:     tt.fields.Status,
+				address: tt.fields.Address,
+				//httpClient: tt.fields.HTTPClient,
+				config: tt.fields.Config,
+				token:  &VaultTokenInfo{ID: tt.fields.Token},
+				status: tt.fields.Status,
 			}
 			if err := c.setTokenFromAppRole(); (err != nil) != tt.wantErr {
-				t.Errorf("Client.setTokenFromAppRole() error = %v, wantErr %v", c.Token.ID, tt.fields.Token)
+				t.Errorf("Client.setTokenFromAppRole() error = %v, wantErr %v", c.token.ID, tt.fields.Token)
 				//err, tt.wantErr)
 			}
 		})

@@ -26,10 +26,10 @@ func (c *Client) renewToken() {
 	jsonToken := make(map[string]string)
 
 	for {
-		duration := c.Token.TTL - 2
+		duration := c.token.TTL - 2
 		time.Sleep(time.Second * time.Duration(duration))
 
-		url := c.Address.String() + "/v1/auth/token/renew"
+		url := c.address.String() + "/v1/auth/token/renew"
 
 		jsonToken["token"] = c.getTokenID()
 
@@ -53,21 +53,22 @@ func (c *Client) renewToken() {
 			c.setStatus("Error renewing token " + err.Error())
 			continue
 		}
+		c.setStatus("token renewed")
 	}
 }
 
 // setTokenFromAppRole get the token from Vault and set it in the client
 func (c *Client) setTokenFromAppRole() error {
 	var vaultData vaultAuth
-	if c.Config.AppRoleCredentials.RoleID == "" {
+	if c.config.AppRoleCredentials.RoleID == "" {
 		return errors.New("No credentials provided")
 	}
 
-	url := c.Address.String() + "/v1/auth/approle/login"
+	url := c.address.String() + "/v1/auth/approle/login"
 
-	req, _ := newRequest("POST", c.Token.ID, url)
+	req, _ := newRequest("POST", c.token.ID, url)
 
-	req.setJSONBody(c.Config.AppRoleCredentials)
+	req.setJSONBody(c.config.AppRoleCredentials)
 
 	resp, err := req.execute()
 	if err != nil {
@@ -79,13 +80,13 @@ func (c *Client) setTokenFromAppRole() error {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
 	c.withLockContext(func() {
-		c.Token.ID = vaultData.ClientToken
+		c.token.ID = vaultData.ClientToken
 	})
 
 	if err = c.setTokenInfo(); err != nil {
 		return errors.Wrap(errors.WithStack(err), errInfo())
 	}
-	if c.Token.Renewable {
+	if c.token.Renewable {
 		go c.renewToken()
 	}
 
@@ -103,13 +104,9 @@ type vaultSecretKV2 struct {
 	} `json:"metadata"`
 }
 
-type tokenRenewable struct {
-	Renewable bool `json:"renewable"`
-}
-
 func (c *Client) setTokenInfo() error {
-	url := c.Address.String() + "/v1/auth/token/lookup-self"
-	var tokenInfo vaultTokenInfo
+	url := c.address.String() + "/v1/auth/token/lookup-self"
+	var tokenInfo VaultTokenInfo
 
 	req, _ := newRequest("GET", c.getTokenID(), url)
 
@@ -121,8 +118,8 @@ func (c *Client) setTokenInfo() error {
 		return err
 	}
 	c.withLockContext(func() {
-		c.Token = &tokenInfo
-		c.IsAuthenticated = true
+		c.token = &tokenInfo
+		c.isAuthenticated = true
 
 	})
 	return nil

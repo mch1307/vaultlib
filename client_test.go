@@ -44,9 +44,9 @@ func TestNewClient(t *testing.T) {
 	defaultCfg.AppRoleCredentials.RoleID = vaultRoleID
 	defaultCfg.AppRoleCredentials.SecretID = vaultSecretID
 	vc, _ := NewClient(defaultCfg)
-	//defaultCfg.Address = "@@@"
+	//defaultCfg.address = "@@@"
 	// add token to client
-	vc.Token.ID = "my-renewable-token"
+	vc.token.ID = "my-renewable-token"
 	// create new config with a vault token
 	os.Setenv("VAULT_TOKEN", "my-renewable-token")
 	cfg := NewConfig()
@@ -85,7 +85,7 @@ func TestNewClient(t *testing.T) {
 				t.Errorf("NewClient() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !tt.wantErr && !(got.Status == tt.want.Status) {
+			if !tt.wantErr && !(got.status == tt.want.status) {
 				t.Errorf("NewClient() = %v, want %v", got, tt.want)
 			}
 		})
@@ -103,7 +103,7 @@ func ExampleNewClient() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(myVaultClient.Address)
+	fmt.Println(myVaultClient.address)
 }
 
 func Example() {

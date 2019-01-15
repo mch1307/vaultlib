@@ -32,7 +32,7 @@ func (c *Client) RawRequest(method, path string, payload interface{}) (result js
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
 	}
-	url := c.Address.String() + path
+	url := c.address.String() + path
 
 	req, err := newRequest(method, c.getTokenID(), url)
 	if err != nil {
@@ -63,12 +63,12 @@ func newRequest(method, token, url string) (*request, error) {
 		return req, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
-	req.HTTPClient = cleanhttp.DefaultPooledClient()
+	req.HTTPClient = cleanhttp.DefaultClient()
 	req.Token = token
 
 	req.Req.Header.Set("Content-Type", "application/json")
 	if req.Token != "" {
-		req.Req.Header.Set("X-Vault-Token", req.Token)
+		req.Req.Header.Set("X-Vault-token", req.Token)
 	}
 	return req, errors.Wrap(errors.WithStack(err), errInfo())
 

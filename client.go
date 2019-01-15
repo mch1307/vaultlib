@@ -1,34 +1,31 @@
 //Package vaultlib is a lightweight Go library for reading Vault KV secrets.
 //Interacts with Vault server using HTTP API only.
 //
-//First create a new *Config object using NewConfig().
+//First create a new *config object using NewConfig().
 //
-//Then create you Vault client using NewClient(*Config).
+//Then create you Vault client using NewClient(*config).
 package vaultlib
 
 import (
-	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"sync"
 	"time"
-
-	cleanhttp "github.com/hashicorp/go-cleanhttp"
 )
 
 // Client holds the vault client
 type Client struct {
 	sync.RWMutex
-	Address         *url.URL
-	HTTPClient      *http.Client
-	Config          *Config
-	Token           *vaultTokenInfo
-	Status          string
-	IsAuthenticated bool
+	address *url.URL
+	//httpClient      *http.Client
+	config          *Config
+	token           *VaultTokenInfo
+	status          string
+	isAuthenticated bool
 }
 
-type vaultTokenInfo struct {
+type VaultTokenInfo struct {
 	Accessor       string      `json:"accessor"`
 	CreationTime   int         `json:"creation_time"`
 	CreationTTL    int         `json:"creation_ttl"`
@@ -54,7 +51,7 @@ type AppRoleCredentials struct {
 	SecretID string `json:"secret_id"`
 }
 
-// Config holds the vault client config
+// config holds the vault client config
 type Config struct {
 	Address            string
 	MaxRetries         int
@@ -66,7 +63,7 @@ type Config struct {
 }
 
 // NewConfig returns a new configuration based on env vars or default value.
-// Modify the returned Config object to make proper configuration.
+// Modify the returned config object to make proper configuration.
 func NewConfig() *Config {
 	var cfg Config
 	appRoleCredentials := new(AppRoleCredentials)
@@ -123,58 +120,83 @@ func NewClient(c *Config) (*Client, error) {
 		c = NewConfig()
 	}
 	var cli Client
-	cli.Status = "New"
-	cli.Config = c
-	cli.Config.Address = c.Address
-	cli.Config.CAPath = c.CAPath
-	cli.Config.InsecureSSL = c.InsecureSSL
-	cli.Config.MaxRetries = c.MaxRetries
-	cli.Config.Timeout = c.Timeout
-	cli.Config.Token = c.Token
-	cli.Config.AppRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
-	cli.Config.AppRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
+	cli.status = "New"
+	cli.config = c
+	cli.config.Address = c.Address
+	cli.config.CAPath = c.CAPath
+	cli.config.InsecureSSL = c.InsecureSSL
+	cli.config.MaxRetries = c.MaxRetries
+	cli.config.Timeout = c.Timeout
+	cli.config.Token = c.Token
+	cli.config.AppRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
+	cli.config.AppRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
 	u, err := url.Parse(c.Address)
 	if err != nil {
 		return nil, err
 	}
-	cli.Address = u
-	cli.HTTPClient = cleanhttp.DefaultPooledClient()
-	cli.Token = new(vaultTokenInfo)
-	cli.Token.ID = c.Token
+	cli.address = u
+	//cli.httpClient = cleanhttp.DefaultPooledClient()
+	cli.token = new(VaultTokenInfo)
+	cli.token.ID = c.Token
 
-	if cli.Token.ID == "" {
+	if cli.token.ID == "" {
 		err = cli.setTokenFromAppRole()
 		if err != nil {
-			cli.Status = "Authentication Error: " + err.Error()
+			cli.status = "Authentication Error: " + err.Error()
 			return &cli, err
 		}
 	} else {
 		if err = cli.setTokenInfo(); err != nil {
-			cli.Status = "Authentication Error: " + err.Error()
+			cli.status = "Authentication Error: " + err.Error()
 			return &cli, err
 		}
-		if cli.Token.Renewable {
+		if cli.token.Renewable {
 			go cli.renewToken()
 		}
 
 	}
 
-	cli.Status = "Token ready"
+	cli.status = "token ready"
 	return &cli, nil
 }
 
 func (c *Client) getTokenID() string {
 	var tk string
 	c.withLockContext(func() {
-		tk = c.Token.ID
+		tk = c.token.ID
 	})
 	return tk
 }
 
+func (c *Client) GetTokenInfo() *VaultTokenInfo {
+	vt := new(VaultTokenInfo)
+	c.withLockContext(func() {
+		vt = c.token
+	})
+	return vt
+
+}
+
 func (c *Client) setStatus(status string) {
 	c.withLockContext(func() {
-		c.Status = status
+		c.status = status
 	})
+}
+
+func (c *Client) GetStatus() string {
+	var status string
+	c.withLockContext(func() {
+		status = c.status
+	})
+	return status
+}
+
+func (c *Client) IsAuthenticated() bool {
+	var authOK bool
+	c.withLockContext(func() {
+		authOK = c.isAuthenticated
+	})
+	return authOK
 }
 
 func (c *Client) withLockContext(fn func()) {
