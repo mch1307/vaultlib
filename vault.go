@@ -43,7 +43,7 @@ func (c *Client) GetSecret(path string) (secret Secret, err error) {
 		url = url + "/v1/" + path
 	}
 
-	req, _ := newRequest("GET", c.token.ID, url)
+	req, _ := c.newRequest("GET", url)
 
 	rsp, err := req.execute()
 	if err != nil {
@@ -120,7 +120,7 @@ func (c *Client) getKVInfo(path string) (version, name string, err error) {
 	var vaultSecretMount = make(map[string]vaultSecretMounts)
 	url := c.address.String() + "/v1/sys/internal/ui/mounts"
 
-	req, _ := newRequest("GET", c.getTokenID(), url)
+	req, _ := c.newRequest("GET", url)
 
 	rsp, err := req.execute()
 	if err != nil {

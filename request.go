@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	"github.com/pkg/errors"
 )
 
@@ -34,7 +33,7 @@ func (c *Client) RawRequest(method, path string, payload interface{}) (result js
 	}
 	url := c.address.String() + path
 
-	req, err := newRequest(method, c.getTokenID(), url)
+	req, err := c.newRequest(method, url)
 	if err != nil {
 		return result, errors.Wrap(errors.WithStack(err), errInfo())
 	}
@@ -54,7 +53,7 @@ func (c *Client) RawRequest(method, path string, payload interface{}) (result js
 }
 
 // Returns a ready to execute request
-func newRequest(method, token, url string) (*request, error) {
+func (c *Client) newRequest(method, url string) (*request, error) {
 	var err error
 	req := new(request)
 
@@ -63,12 +62,12 @@ func newRequest(method, token, url string) (*request, error) {
 		return req, errors.Wrap(errors.WithStack(err), errInfo())
 	}
 
-	req.HTTPClient = cleanhttp.DefaultClient()
-	req.Token = token
+	req.HTTPClient = c.httpClient
+	token := c.getTokenID()
 
 	req.Req.Header.Set("Content-Type", "application/json")
-	if req.Token != "" {
-		req.Req.Header.Set("X-Vault-token", req.Token)
+	if token != "" {
+		req.Req.Header.Set("X-Vault-token", token)
 	}
 	return req, errors.Wrap(errors.WithStack(err), errInfo())
 

@@ -33,7 +33,7 @@ func (c *Client) renewToken() {
 
 		jsonToken["token"] = c.getTokenID()
 
-		req, _ := newRequest("POST", jsonToken["token"], url)
+		req, _ := c.newRequest("POST", url)
 
 		req.setJSONBody(jsonToken)
 
@@ -66,7 +66,7 @@ func (c *Client) setTokenFromAppRole() error {
 
 	url := c.address.String() + "/v1/auth/approle/login"
 
-	req, _ := newRequest("POST", c.token.ID, url)
+	req, _ := c.newRequest("POST", url)
 
 	req.setJSONBody(c.config.AppRoleCredentials)
 
@@ -108,7 +108,7 @@ func (c *Client) setTokenInfo() error {
 	url := c.address.String() + "/v1/auth/token/lookup-self"
 	var tokenInfo VaultTokenInfo
 
-	req, _ := newRequest("GET", c.getTokenID(), url)
+	req, _ := c.newRequest("GET", url)
 
 	res, err := req.execute()
 	if err != nil {

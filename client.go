@@ -7,24 +7,26 @@
 package vaultlib
 
 import (
+	"net/http"
 	"net/url"
-	"os"
-	"strconv"
 	"sync"
 	"time"
+
+	cleanhttp "github.com/hashicorp/go-cleanhttp"
 )
 
 // Client holds the vault client
 type Client struct {
 	sync.RWMutex
-	address *url.URL
-	//httpClient      *http.Client
+	address         *url.URL
+	httpClient      *http.Client
 	config          *Config
 	token           *VaultTokenInfo
 	status          string
 	isAuthenticated bool
 }
 
+// VaultTokenInfo holds the Vault token information
 type VaultTokenInfo struct {
 	Accessor       string      `json:"accessor"`
 	CreationTime   int         `json:"creation_time"`
@@ -43,74 +45,6 @@ type VaultTokenInfo struct {
 	Renewable      bool        `json:"renewable"`
 	TTL            int         `json:"ttl"`
 	Type           string      `json:"type"`
-}
-
-// AppRoleCredentials holds the app role secret and role ids
-type AppRoleCredentials struct {
-	RoleID   string `json:"role_id"`
-	SecretID string `json:"secret_id"`
-}
-
-// config holds the vault client config
-type Config struct {
-	Address            string
-	MaxRetries         int
-	Timeout            time.Duration
-	CAPath             string
-	InsecureSSL        bool
-	AppRoleCredentials *AppRoleCredentials
-	Token              string
-}
-
-// NewConfig returns a new configuration based on env vars or default value.
-// Modify the returned config object to make proper configuration.
-func NewConfig() *Config {
-	var cfg Config
-	appRoleCredentials := new(AppRoleCredentials)
-	if v := os.Getenv("VAULT_ADDR"); v != "" {
-		cfg.Address = v
-	} else {
-		cfg.Address = "http://localhost:8200"
-	}
-
-	if v := os.Getenv("VAULT_CAPATH"); v != "" {
-		cfg.CAPath = v
-	}
-
-	if v := os.Getenv("VAULT_TOKEN"); v != "" {
-		cfg.Token = v
-	}
-
-	if v := os.Getenv("VAULT_ROLEID"); v != "" {
-		appRoleCredentials.RoleID = v
-	}
-
-	if v := os.Getenv("VAULT_SECRETID"); v != "" {
-		appRoleCredentials.SecretID = v
-	}
-
-	if t := os.Getenv("VAULT_CLIENT_TIMEOUT"); t != "" {
-		to, err := strconv.Atoi(t)
-		if err != nil {
-			cfg.Timeout = time.Duration(30) * time.Second
-		}
-		clientTimeout := time.Duration(to) * time.Second
-		cfg.Timeout = clientTimeout
-	} else {
-		cfg.Timeout = time.Duration(30 * time.Second)
-	}
-
-	if v := os.Getenv("VAULT_SKIP_VERIFY"); v != "" {
-		var err error
-		cfg.InsecureSSL, err = strconv.ParseBool(v)
-		if err != nil {
-			cfg.InsecureSSL = true
-		}
-	} else {
-		cfg.InsecureSSL = true
-	}
-	cfg.AppRoleCredentials = appRoleCredentials
-	return &cfg
 }
 
 // NewClient returns a new client based on the provided config
@@ -135,7 +69,7 @@ func NewClient(c *Config) (*Client, error) {
 		return nil, err
 	}
 	cli.address = u
-	//cli.httpClient = cleanhttp.DefaultPooledClient()
+	cli.httpClient = cleanhttp.DefaultPooledClient()
 	cli.token = new(VaultTokenInfo)
 	cli.token.ID = c.Token
 
@@ -156,7 +90,7 @@ func NewClient(c *Config) (*Client, error) {
 
 	}
 
-	cli.status = "token ready"
+	cli.status = "Token ready"
 	return &cli, nil
 }
 
@@ -168,6 +102,7 @@ func (c *Client) getTokenID() string {
 	return tk
 }
 
+// GetTokenInfo returns the current token information
 func (c *Client) GetTokenInfo() *VaultTokenInfo {
 	vt := new(VaultTokenInfo)
 	c.withLockContext(func() {
@@ -183,6 +118,7 @@ func (c *Client) setStatus(status string) {
 	})
 }
 
+// GetStatus return the last action status/log
 func (c *Client) GetStatus() string {
 	var status string
 	c.withLockContext(func() {
@@ -191,8 +127,9 @@ func (c *Client) GetStatus() string {
 	return status
 }
 
+// IsAuthenticated returns bool if last call to vault was ok
 func (c *Client) IsAuthenticated() bool {
-	var authOK bool
+	authOK := false
 	c.withLockContext(func() {
 		authOK = c.isAuthenticated
 	})
