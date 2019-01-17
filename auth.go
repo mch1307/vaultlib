@@ -60,7 +60,7 @@ func (c *Client) renewToken() {
 // setTokenFromAppRole get the token from Vault and set it in the client
 func (c *Client) setTokenFromAppRole() error {
 	var vaultData vaultAuth
-	if c.config.AppRoleCredentials.RoleID == "" {
+	if c.appRoleCredentials.RoleID == "" || c.appRoleCredentials.SecretID == "" {
 		return errors.New("No credentials provided")
 	}
 
@@ -68,7 +68,7 @@ func (c *Client) setTokenFromAppRole() error {
 
 	req, _ := c.newRequest("POST", url)
 
-	req.setJSONBody(c.config.AppRoleCredentials)
+	req.setJSONBody(c.appRoleCredentials)
 
 	resp, err := req.execute()
 	if err != nil {

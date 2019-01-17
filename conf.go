@@ -17,7 +17,7 @@ type Config struct {
 	Address            string
 	MaxRetries         int
 	Timeout            time.Duration
-	CAPath             string
+	CACert             string
 	InsecureSSL        bool
 	AppRoleCredentials *AppRoleCredentials
 	Token              string
@@ -44,8 +44,8 @@ func NewConfig() *Config {
 		cfg.Address = "http://localhost:8200"
 	}
 
-	if v := os.Getenv("VAULT_CAPATH"); v != "" {
-		cfg.CAPath = v
+	if v := os.Getenv("VAULT_CACERT"); v != "" {
+		cfg.CACert = v
 	}
 
 	if v := os.Getenv("VAULT_TOKEN"); v != "" {

@@ -23,7 +23,7 @@ The following env variables are supported:
 
 ```bash
 VAULT_ADDR            Vault server URL (default http://localhost:8200)
-VAULT_CAPATH          CA path
+VAULT_CACERT          Path to CA file
 VAULT_TOKEN           Vault Token
 VAULT_ROLEID          Vault app role id
 VAULT_SECRETID        Vault app role secret id

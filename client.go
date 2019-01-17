@@ -7,23 +7,26 @@
 package vaultlib
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
 
-	cleanhttp "github.com/hashicorp/go-cleanhttp"
+	"github.com/hashicorp/go-cleanhttp"
 )
 
 // Client holds the vault client
 type Client struct {
 	sync.RWMutex
-	address         *url.URL
-	httpClient      *http.Client
-	config          *Config
-	token           *VaultTokenInfo
-	status          string
-	isAuthenticated bool
+	address            *url.URL
+	httpClient         *http.Client
+	appRoleCredentials *AppRoleCredentials
+	token              *VaultTokenInfo
+	status             string
+	isAuthenticated    bool
 }
 
 // VaultTokenInfo holds the Vault token information
@@ -49,27 +52,43 @@ type VaultTokenInfo struct {
 
 // NewClient returns a new client based on the provided config
 func NewClient(c *Config) (*Client, error) {
+	var caPool *x509.CertPool
 	// If no config provided, use a new one based on default values and env vars
 	if c == nil {
 		c = NewConfig()
 	}
+
 	var cli Client
 	cli.status = "New"
-	cli.config = c
-	cli.config.Address = c.Address
-	cli.config.CAPath = c.CAPath
-	cli.config.InsecureSSL = c.InsecureSSL
-	cli.config.MaxRetries = c.MaxRetries
-	cli.config.Timeout = c.Timeout
-	cli.config.Token = c.Token
-	cli.config.AppRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
-	cli.config.AppRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
+	cli.appRoleCredentials = new(AppRoleCredentials)
+	cli.appRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
+	cli.appRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
+
 	u, err := url.Parse(c.Address)
 	if err != nil {
 		return nil, err
 	}
+
 	cli.address = u
+
+	if c.CACert != "" {
+		caCert, err := ioutil.ReadFile(c.CACert)
+		if err != nil {
+			c.CACert = ""
+		}
+		caPool = x509.NewCertPool()
+		caPool.AppendCertsFromPEM(caCert)
+	}
+
 	cli.httpClient = cleanhttp.DefaultPooledClient()
+	cli.httpClient.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs:            caPool,
+			MinVersion:         tls.VersionTLS12,
+			InsecureSkipVerify: c.InsecureSSL,
+		},
+	}
+
 	cli.token = new(VaultTokenInfo)
 	cli.token.ID = c.Token
 
@@ -89,7 +108,6 @@ func NewClient(c *Config) (*Client, error) {
 		}
 
 	}
-
 	cli.status = "Token ready"
 	return &cli, nil
 }
@@ -139,6 +157,5 @@ func (c *Client) IsAuthenticated() bool {
 func (c *Client) withLockContext(fn func()) {
 	c.Lock()
 	defer c.Unlock()
-
 	fn()
 }
