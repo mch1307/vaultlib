@@ -4,6 +4,10 @@
 //First create a new *config object using NewConfig().
 //
 //Then create you Vault client using NewClient(*config).
+//
+// See Also
+//
+// https://github.com/mch1307/vaultlib#vaultlib
 package vaultlib
 
 import (

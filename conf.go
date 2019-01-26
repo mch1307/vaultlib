@@ -27,14 +27,14 @@ type Config struct {
 //
 // Reads ENV:
 //	VAULT_ADDR            Vault server URL (default http://localhost:8200)
-//	VAULT_CAPATH          CA path
-//	VAULT_TOKEN           Vault Token
 //	VAULT_ROLEID          Vault app role id
 //	VAULT_SECRETID        Vault app role secret id
-//	VAULT_CLIENT_TIMEOUT  Client timeout
+//	VAULT_TOKEN           Vault Token (in case approle is not used)
+//	VAULT_CACERT          Path to CA pem file
 //	VAULT_SKIP_VERIFY     Do not check SSL
+//	VAULT_CLIENT_TIMEOUT  Client timeout
 //
-// Modify the returned config object to make proper configuration.
+// Modify the returned config object to adjust your configuration.
 func NewConfig() *Config {
 	var cfg Config
 	appRoleCredentials := new(AppRoleCredentials)
