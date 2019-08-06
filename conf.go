@@ -8,8 +8,9 @@ import (
 
 // AppRoleCredentials holds the app role secret and role ids
 type AppRoleCredentials struct {
-	RoleID   string `json:"role_id"`
-	SecretID string `json:"secret_id"`
+	RoleID     string `json:"role_id"`
+	SecretID   string `json:"secret_id"`
+	MountPoint string `json:"-"`
 }
 
 // Config holds the vault client config
@@ -58,6 +59,12 @@ func NewConfig() *Config {
 
 	if v := os.Getenv("VAULT_SECRETID"); v != "" {
 		appRoleCredentials.SecretID = v
+	}
+
+	if v := os.Getenv("VAULT_MOUNTPOINT"); v != "" {
+		appRoleCredentials.MountPoint = v
+	} else {
+		appRoleCredentials.MountPoint = "approle"
 	}
 
 	if t := os.Getenv("VAULT_CLIENT_TIMEOUT"); t != "" {
