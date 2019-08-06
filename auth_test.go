@@ -43,7 +43,7 @@ func TestVaultClient_setTokenFromAppRole(t *testing.T) {
 				"bad-token",
 				""},
 			true},
-		{"badMountPoint",
+		{"anyMountPoint",
 			fields{
 				rightURL,
 				htCli,
