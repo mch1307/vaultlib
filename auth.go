@@ -61,13 +61,14 @@ func (c *Client) renewToken() {
 // setTokenFromAppRole get the token from Vault and set it in the client
 func (c *Client) setTokenFromAppRole() error {
 	var vaultData vaultAuth
-	if c.appRoleCredentials.RoleID == "" || c.appRoleCredentials.SecretID == "" {
-		return errors.New("No credentials provided")
-	}
 
 	mp := "approle"
 	if c.appRoleCredentials.MountPoint != "" {
 		mp = c.appRoleCredentials.MountPoint
+	}
+
+	if c.appRoleCredentials.RoleID == "" || c.appRoleCredentials.SecretID == "" {
+		return errors.New("No credentials provided")
 	}
 
 	url := fmt.Sprintf("%s/v1/auth/%s/login", c.address.String(), mp)

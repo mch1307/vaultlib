@@ -10,9 +10,9 @@ func TestVaultClient_setTokenFromAppRole(t *testing.T) {
 	rightURL, _ := url.Parse("http://localhost:8200")
 	badURL, _ := url.Parse("https://localhost:8200")
 	conf := NewConfig()
-	badMountPoint := "badMountPoint"
-	badCreds := NewConfig().AppRoleCredentials
-	badCreds.MountPoint = badMountPoint
+	anyMountPoint := "anyMountPoint"
+	anyCreds := NewConfig().AppRoleCredentials
+	anyCreds.MountPoint = anyMountPoint
 	htCli := new(http.Client)
 	type fields struct {
 		Address            *url.URL
@@ -47,7 +47,7 @@ func TestVaultClient_setTokenFromAppRole(t *testing.T) {
 			fields{
 				rightURL,
 				htCli,
-				badCreds,
+				anyCreds,
 				"bad-token",
 				""},
 			true},
