@@ -30,6 +30,7 @@ type Config struct {
 //	VAULT_ADDR            Vault server URL (default http://localhost:8200)
 //	VAULT_ROLEID          Vault app role id
 //	VAULT_SECRETID        Vault app role secret id
+//	VAULT_MOUNTPOINT      Vault app role secret id mountpoint (default "approle")
 //	VAULT_TOKEN           Vault Token (in case approle is not used)
 //	VAULT_CACERT          Path to CA pem file
 //	VAULT_SKIP_VERIFY     Do not check SSL
