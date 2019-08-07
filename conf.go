@@ -8,8 +8,9 @@ import (
 
 // AppRoleCredentials holds the app role secret and role ids
 type AppRoleCredentials struct {
-	RoleID   string `json:"role_id"`
-	SecretID string `json:"secret_id"`
+	RoleID     string `json:"role_id"`
+	SecretID   string `json:"secret_id"`
+	MountPoint string `json:"-"`
 }
 
 // Config holds the vault client config
@@ -29,6 +30,7 @@ type Config struct {
 //	VAULT_ADDR            Vault server URL (default http://localhost:8200)
 //	VAULT_ROLEID          Vault app role id
 //	VAULT_SECRETID        Vault app role secret id
+//	VAULT_MOUNTPOINT      Vault app role mountpoint (default "approle")
 //	VAULT_TOKEN           Vault Token (in case approle is not used)
 //	VAULT_CACERT          Path to CA pem file
 //	VAULT_SKIP_VERIFY     Do not check SSL
@@ -58,6 +60,12 @@ func NewConfig() *Config {
 
 	if v := os.Getenv("VAULT_SECRETID"); v != "" {
 		appRoleCredentials.SecretID = v
+	}
+
+	if v := os.Getenv("VAULT_MOUNTPOINT"); v != "" {
+		appRoleCredentials.MountPoint = v
+	} else {
+		appRoleCredentials.MountPoint = "approle"
 	}
 
 	if t := os.Getenv("VAULT_CLIENT_TIMEOUT"); t != "" {

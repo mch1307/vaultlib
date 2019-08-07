@@ -22,13 +22,14 @@ Configuration can be done through env variables or programmatically through the 
 The following env variables are supported:
 
 ```bash
-VAULT_ADDR            Vault server URL (default http://localhost:8200)
-VAULT_CACERT          Path to CA file
-VAULT_TOKEN           Vault Token
-VAULT_ROLEID          Vault app role id
-VAULT_SECRETID        Vault app role secret id
-VAULT_CLIENT_TIMEOUT  Client timeout
-VAULT_SKIP_VERIFY     Do not check SSL
+VAULT_ADDR            # Vault server URL (default "http://localhost:8200")
+VAULT_CACERT          # Path to CA file
+VAULT_TOKEN           # Vault Token
+VAULT_ROLEID          # Vault app role id
+VAULT_SECRETID        # Vault app role secret id
+VAULT_MOUNTPOINT      # Vault app role mountpoint (default "approle")
+VAULT_CLIENT_TIMEOUT  # Client timeout
+VAULT_SKIP_VERIFY     # Do not check SSL
 ```
 
 If not set, `vaultlib` will fallback to safe default values.
@@ -61,6 +62,8 @@ func main() {
     // set app role credentials (ie after reading from docker secret)
     // vcConf.AppRoleCredentials.RoleID = "myRoleID"
     // vcConf.AppRoleCredentials.SecretID = "mySecretID"
+    // if you have set a different mountpoint from "approle" :
+    // vcConf.AppRoleCredentials.MountPoint = "myCustomMountPoint"
 
     // Create new client
     vaultCli, err := vault.NewClient(vcConf)

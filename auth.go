@@ -2,6 +2,7 @@ package vaultlib
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -35,7 +36,7 @@ func (c *Client) renewToken() {
 
 		req, _ := c.newRequest("POST", url)
 
-		req.setJSONBody(jsonToken)
+		_ = req.setJSONBody(jsonToken)
 
 		resp, err := req.execute()
 		if err != nil {
@@ -60,15 +61,21 @@ func (c *Client) renewToken() {
 // setTokenFromAppRole get the token from Vault and set it in the client
 func (c *Client) setTokenFromAppRole() error {
 	var vaultData vaultAuth
+
+	mp := "approle"
+	if c.appRoleCredentials.MountPoint != "" {
+		mp = c.appRoleCredentials.MountPoint
+	}
+
 	if c.appRoleCredentials.RoleID == "" || c.appRoleCredentials.SecretID == "" {
 		return errors.New("No credentials provided")
 	}
 
-	url := c.address.String() + "/v1/auth/approle/login"
+	url := fmt.Sprintf("%s/v1/auth/%s/login", c.address.String(), mp)
 
 	req, _ := c.newRequest("POST", url)
 
-	req.setJSONBody(c.appRoleCredentials)
+	_ = req.setJSONBody(c.appRoleCredentials)
 
 	resp, err := req.execute()
 	if err != nil {
