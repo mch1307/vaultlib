@@ -34,6 +34,8 @@ VAULT_SKIP_VERIFY     # Do not check SSL
 
 If not set, `vaultlib` will fallback to safe default values.
 
+> `vautlib` will automatically use the http_proxy environment variable to connect to Vault
+
 ## Getting Started
 
 > For a simple, working example, check the sample folder.

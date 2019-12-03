@@ -84,14 +84,17 @@ func NewClient(c *Config) (*Client, error) {
 		caPool.AppendCertsFromPEM(caCert)
 	}
 
-	cli.httpClient = cleanhttp.DefaultPooledClient()
-	cli.httpClient.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs:            caPool,
-			MinVersion:         tls.VersionTLS12,
-			InsecureSkipVerify: c.InsecureSSL,
-		},
+	cli.httpClient = &http.Client{}
+
+	tsp := cleanhttp.DefaultPooledTransport()
+
+	tsp.TLSClientConfig = &tls.Config{
+		RootCAs:            caPool,
+		MinVersion:         tls.VersionTLS12,
+		InsecureSkipVerify: c.InsecureSSL,
 	}
+
+	cli.httpClient.Transport = tsp
 
 	cli.token = new(VaultTokenInfo)
 	cli.token.ID = c.Token
