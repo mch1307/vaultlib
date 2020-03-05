@@ -1,6 +1,7 @@
 package vaultlib
 
 import (
+	"io/ioutil"
 	"os"
 	"strconv"
 	"time"
@@ -28,9 +29,11 @@ type Config struct {
 //
 // Reads ENV:
 //	VAULT_ADDR            Vault server URL (default http://localhost:8200)
-//	VAULT_ROLEID          Vault app role id
-//	VAULT_SECRETID        Vault app role secret id
-//	VAULT_MOUNTPOINT      Vault app role mountpoint (default "approle")
+//	VAULT_ROLEID          Vault approle role id
+//	VAULT_SECRETID        Vault approle role secret id
+//  VAULT_ROLEIDFILE      Vault approle role id file
+//  VAULT_SECRETIDFILE    Vault approle secret id file
+//	VAULT_MOUNTPOINT      Vault approle mountpoint (default "approle")
 //	VAULT_TOKEN           Vault Token (in case approle is not used)
 //	VAULT_CACERT          Path to CA pem file
 //	VAULT_SKIP_VERIFY     Do not check SSL
@@ -60,6 +63,20 @@ func NewConfig() *Config {
 
 	if v := os.Getenv("VAULT_SECRETID"); v != "" {
 		appRoleCredentials.SecretID = v
+	}
+
+	if v := os.Getenv("VAULT_ROLEIDFILE"); v != "" {
+		content, err := ioutil.ReadFile(v)
+		if err == nil {
+			appRoleCredentials.RoleID = string(content)
+		}
+	}
+
+	if v := os.Getenv("VAULT_SECRETIDFILE"); v != "" {
+		content, err := ioutil.ReadFile(v)
+		if err == nil {
+			appRoleCredentials.SecretID = string(content)
+		}
 	}
 
 	if v := os.Getenv("VAULT_MOUNTPOINT"); v != "" {
