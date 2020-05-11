@@ -13,6 +13,11 @@ var vaultRoleID, vaultSecretID, noKVRoleID, noKVSecretID string
 
 var vaultVersion string
 
+var _ = func() bool {
+	testing.Init()
+	return true
+}()
+
 func init() {
 	flag.StringVar(&vaultVersion, "vaultVersion", "1.0.1", "provide vault version to be tested against")
 	flag.Parse()
