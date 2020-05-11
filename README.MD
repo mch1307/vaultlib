@@ -36,6 +36,10 @@ If not set, `vaultlib` will fallback to safe default values.
 
 > `vautlib` will automatically use the http_proxy environment variable to connect to Vault
 
+## Tests
+
+To test this library, run `go1.11.13 test -vaultVersion 1.4.1` in the root of the repo.
+
 ## Getting Started
 
 > For a simple, working example, check the sample folder.
