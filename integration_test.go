@@ -13,15 +13,18 @@ var vaultRoleID, vaultSecretID, noKVRoleID, noKVSecretID string
 
 var vaultVersion string
 
-func init() {
-	flag.StringVar(&vaultVersion, "vaultVersion", "1.4.1", "provide vault version to be tested against")
-	flag.Parse()
-}
 func TestMain(m *testing.M) {
-
+	flag.StringVar(
+		&vaultVersion,
+		"vaultVersion",
+		"1.4.1",
+		"provide vault version to be tested against",
+	)
+	flag.Parse()
 	fmt.Println("Testing with Vault version", vaultVersion)
 	fmt.Println("TestMain: Preparing Vault server")
 	prepareVault()
+	fmt.Println("TestMain: Vault Prepared; Running Tests")
 	ret := m.Run()
 	os.Exit(ret)
 }

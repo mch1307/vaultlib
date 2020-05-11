@@ -4,7 +4,10 @@ branches:
   - master
 language: go
 go:
-    - 1.11.4
+    - 1.11.13
+    - 1.12.17
+    - 1.13.10
+    - 1.14.2
 install: true
 sudo: required
 services:
@@ -12,4 +15,5 @@ services:
 before_install:
   - go get github.com/mattn/goveralls
 script:
-  - goveralls -v -service=travis-ci
+  - go test -v -covermode=count -coverprofile=coverage.out
+  - goveralls -coverprofile=coverage.out -service=travis-ci
