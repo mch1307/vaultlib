@@ -1,4 +1,7 @@
 # .travis.yml
+branches:
+  only:
+  - master
 language: go
 go:
     - 1.11.4
