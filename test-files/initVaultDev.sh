@@ -3,11 +3,23 @@ export VAULT_ADDR=http://localhost:8200
 export VAULT_TOKEN=my-dev-root-vault-token
 export VAULT_VERSION=${1:-1.0.1}
 
+case "$(uname -s)" in
+  Darwin*)
+    os="darwin_amd64"
+    ;;
+  MINGW64*)
+    os="windows_amd64"
+    ;;
+  *)
+    os="linux_amd64"
+    ;;
+esac
+
 CURRENT_VAULT=`./vault version | cut -d'v' -f2 | cut -d' ' -f1`
 if [ "$CURRENT_VAULT" != "$VAULT_VERSION" ]; then
     rm -rf ./vault
-    curl -kO https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
-    unzip vault_${VAULT_VERSION}_linux_amd64.zip
+    curl -kO https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_${os}.zip
+    unzip vault_${VAULT_VERSION}_${os}.zip
 fi
 
 ./vault server -dev -dev-root-token-id ${VAULT_TOKEN}  > /tmp/vaultdev.log &
