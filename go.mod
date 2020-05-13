@@ -1,7 +1,8 @@
-module github.com/mch1307/vaultlib
+module github.com/TrueTickets/vaultlib
 
 require (
 	github.com/hashicorp/go-cleanhttp v0.5.0
+	github.com/TrueTickets/vaultlib v0.5.0
 	github.com/pkg/errors v0.8.1
 )
 

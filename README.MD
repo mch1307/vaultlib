@@ -1,7 +1,7 @@
 # vaultlib
 
-[![Build Status](https://travis-ci.org/mch1307/vaultlib.svg?branch=master)](https://travis-ci.org/mch1307/vaultlib)
-[![Coverage Status](https://coveralls.io/repos/github/mch1307/vaultlib/badge.svg?branch=master)](https://coveralls.io/github/mch1307/vaultlib?branch=master) [![GoDoc](https://godoc.org/github.com/mch1307/vaultlib?status.svg)](https://godoc.org/github.com/mch1307/vaultlib) [![Go Report Card](https://goreportcard.com/badge/github.com/mch1307/vaultlib)](https://goreportcard.com/report/github.com/mch1307/vaultlib)
+[![Build Status](https://travis-ci.org/TrueTickets/vaultlib.svg?branch=master)](https://travis-ci.org/TrueTickets/vaultlib)
+[![Coverage Status](https://coveralls.io/repos/github/TrueTickets/vaultlib/badge.svg?branch=master)](https://coveralls.io/github/TrueTickets/vaultlib?branch=master) [![GoDoc](https://godoc.org/github.com/TrueTickets/vaultlib?status.svg)](https://godoc.org/github.com/TrueTickets/vaultlib) [![Go Report Card](https://goreportcard.com/badge/github.com/TrueTickets/vaultlib)](https://goreportcard.com/report/github.com/TrueTickets/vaultlib)
 
 Lightweight, simple Go library for Vault secret reading (http API).
 
@@ -52,7 +52,7 @@ import (
     "log"
     "os"
 
-    vault "github.com/mch1307/vaultlib"
+    vault "github.com/TrueTickets/vaultlib"
 )
 
 func main() {
