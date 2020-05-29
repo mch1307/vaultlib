@@ -30,12 +30,11 @@ func (c *Client) renewToken() {
 		duration := c.token.TTL - 2
 		time.Sleep(time.Second * time.Duration(duration))
 
-		url := c.address.String() + "/v1/auth/token/renew"
-
-		jsonToken["token"] = c.getTokenID()
+		url := c.address.String() + "/v1/auth/token/renew-self"
 
 		req, _ := c.newRequest("POST", url)
-
+		
+		// Sending a payload (even empty) is required for vault to respond with the `auth` param
 		_ = req.setJSONBody(jsonToken)
 
 		resp, err := req.execute()
