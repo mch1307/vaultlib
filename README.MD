@@ -78,7 +78,7 @@ func main() {
     if err != nil {
         fmt.Println(err)
     }
-    for k, v := range kv {
+    for k, v := range kv.KV {
         fmt.Printf("secret %v: %v\n", k, v)
     }
 }
