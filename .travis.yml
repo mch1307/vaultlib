@@ -1,7 +1,7 @@
 # .travis.yml
 language: go
 go:
-    - 1.11.4
+  - 1.17.3
 install: true
 sudo: required
 services:
