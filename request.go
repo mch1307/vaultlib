@@ -69,6 +69,10 @@ func (c *Client) newRequest(method, url string) (*request, error) {
 	if token != "" {
 		req.Req.Header.Set("X-Vault-token", token)
 	}
+
+	if len(c.namespace) > 0 {
+		req.Req.Header.Set("X-Vault-Namespace", c.namespace)
+	}
 	return req, errors.Wrap(errors.WithStack(err), errInfo())
 
 }

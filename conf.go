@@ -22,6 +22,7 @@ type Config struct {
 	InsecureSSL        bool
 	AppRoleCredentials *AppRoleCredentials
 	Token              string
+	Namespace          string
 }
 
 // NewConfig returns a new configuration based on env vars or default value.
@@ -35,6 +36,7 @@ type Config struct {
 //	VAULT_CACERT          Path to CA pem file
 //	VAULT_SKIP_VERIFY     Do not check SSL
 //	VAULT_CLIENT_TIMEOUT  Client timeout
+//  VAULT_NAMESPACE		  Vault Namespace
 //
 // Modify the returned config object to adjust your configuration.
 func NewConfig() *Config {
@@ -88,6 +90,11 @@ func NewConfig() *Config {
 	} else {
 		cfg.InsecureSSL = true
 	}
+
+	if v := os.Getenv("VAULT_NAMESPACE"); v != "" {
+		cfg.Namespace = v
+	}
+
 	cfg.AppRoleCredentials = appRoleCredentials
 	return &cfg
 }

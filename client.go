@@ -29,6 +29,7 @@ type Client struct {
 	httpClient         *http.Client
 	appRoleCredentials *AppRoleCredentials
 	token              *VaultTokenInfo
+	namespace          string
 	status             string
 	isAuthenticated    bool
 }
