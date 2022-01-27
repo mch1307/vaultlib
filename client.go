@@ -68,6 +68,7 @@ func NewClient(c *Config) (*Client, error) {
 	cli.appRoleCredentials = new(AppRoleCredentials)
 	cli.appRoleCredentials.RoleID = c.AppRoleCredentials.RoleID
 	cli.appRoleCredentials.SecretID = c.AppRoleCredentials.SecretID
+	cli.namespace = c.Namespace
 
 	u, err := url.Parse(c.Address)
 	if err != nil {
