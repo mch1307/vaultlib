@@ -27,6 +27,8 @@ VAULT_CACERT          # Path to CA file
 VAULT_TOKEN           # Vault Token
 VAULT_ROLEID          # Vault app role id
 VAULT_SECRETID        # Vault app role secret id
+VAULT_ROLEIDFILE      # Vault app role id file
+VAULT_SECRETIDFILE    # Vault app role secret file
 VAULT_MOUNTPOINT      # Vault app role mountpoint (default "approle")
 VAULT_CLIENT_TIMEOUT  # Client timeout
 VAULT_SKIP_VERIFY     # Do not check SSL
